@@ -50,7 +50,7 @@ begin
                             25000 when "01",
                             12500 when "10",
                             12500 when "10",
-                            625   when others,
+                            625   when others;
 
     pri_OUT <= pri_sig;
 
