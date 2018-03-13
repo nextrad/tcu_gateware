@@ -1,3 +1,10 @@
-/ise/**
-!/ise/**.xise
-!/ise/**.xco
+ise/simple_pri_NEXYS/*
+ise/simple_pri_RHINO/*
+ise/pri_1KHz_RHINO/*
+ise/pri_1KHz_RHINO/*
+ise/pri_adjustable_RHINO/*
+ise/pri_adjustable_RHINO/*
+
+
+!ise/**/*.xise
+!ise/**.xco
