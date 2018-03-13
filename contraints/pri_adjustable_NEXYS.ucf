@@ -1,0 +1,11 @@
+# Clock signal
+NET "clk_IN"            LOC = "H3"  | IOSTANDARD = "LVCMOS33";   #Bank = 3, Pin name = IO_L44N_GCLK20_M3A6, Sch name = JC1
+
+Net "clk_IN" TNM_NET = sys_clk_pin;
+TIMESPEC TS_sys_clk_pin = PERIOD sys_clk_pin 10 ns;
+
+#JA
+NET "pri_OUT"           LOC = "T12" | IOSTANDARD = "LVCMOS33" | SLEW = "FAST";   #Bank = 2, Pin name = IO_L19P, Sch name = JA1
+
+NET "pri_sel_IN<0>"     LOC = "T10" | IOSTANDARD = "LVCMOS33";   #Bank = 2, Pin name = IO_L29N_GCLK2,                     Sch name = SW0
+NET "pri_sel_IN<1>"     LOC = "T9"  | IOSTANDARD = "LVCMOS33";   #Bank = 2, Pin name = IO_L32P_GCLK29,                    Sch name = SW1
