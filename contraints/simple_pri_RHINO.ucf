@@ -1,0 +1,14 @@
+# Set I/O standard for processor interface pins
+CONFIG VCCAUX  = 3.3;
+
+NET "pri_OUT" LOC = R8 | SLEW = "FAST"; # GPIO 0
+
+# From FMC 0
+# J1 P1
+NET "clk_IN" LOC = AE15;
+NET "clk_IN" IOSTANDARD = LVCMOS33;
+
+# Clock constraints
+
+Net "clk_IN" TNM_NET = sys_clk_pin;
+TIMESPEC TS_sys_clk_pin = PERIOD sys_clk_pin 10 ns;
