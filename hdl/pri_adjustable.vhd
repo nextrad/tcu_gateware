@@ -20,7 +20,7 @@ architecture rtl of pri_adjustable is
 signal clk_sig : std_logic := '0';
 signal pri_sig : std_logic := '0';
 signal counter : unsigned(15 downto 0) := (others => '0');
-signal compare_value : unsigned(15 downto 0) := 50000;
+signal compare_value : unsigned(15 downto 0) := x"C350"; -- 50000
 
 begin
 
@@ -46,11 +46,10 @@ begin
     end process;
 
     with pri_sel_IN select
-        compare_value  <=   50000 when "00",
-                            25000 when "01",
-                            12500 when "10",
-                            12500 when "10",
-                            625   when others;
+        compare_value  <=   x"C350" when "00",      -- 50000 (1KHz)
+                            x"61A8" when "01",      -- 25000 (2KHz)
+                            x"30D4" when "10",      -- 12500 (3KHz)
+                            x"186A" when others;    -- 6250  (4KHz)
 
     pri_OUT <= pri_sig;
 
