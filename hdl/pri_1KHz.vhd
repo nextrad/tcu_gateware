@@ -16,9 +16,12 @@ end entity;
 
 architecture rtl of pri_1KHz is
 
-signal clk_sig : std_logic := '0';
-signal pri_sig : std_logic := '0';
-signal counter : unsigned(15 downto 0) := (others => '0');
+signal clk_sig      : std_logic := '0';
+signal pri_sig      : std_logic := '0';
+signal counter      : unsigned(15 downto 0) := (others => '0');
+
+-- constant PRESCALER  : unsigned(15 downto 0) := 50000; -- 100MHz
+constant PRESCALER  : unsigned(15 downto 0) := 5000; -- 10MHz
 
 begin
 
@@ -35,7 +38,7 @@ begin
     process(clk_sig)
     begin
         if rising_edge(clk_sig) then
-            if counter = 50000 then
+            if counter = PRESCALER then
                 pri_sig <= not pri_sig;
                 counter <= (others => '0');
             end if;

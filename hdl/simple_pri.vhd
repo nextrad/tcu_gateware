@@ -38,6 +38,7 @@ begin
         end if;
     end process;
 
-    pri_OUT <= counter(15);
+    -- pri_OUT <= counter(15); -- 1525.9Hz (100MHz clk)
+    pri_OUT <= counter(12); -- 1220.7Hz (10MHz clk)
 
 end architecture;
