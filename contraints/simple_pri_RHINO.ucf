@@ -2,13 +2,20 @@
 CONFIG VCCAUX  = 3.3;
 
 NET "pri_OUT" LOC = R8 | SLEW = "FAST"; # GPIO 0
-
+NET "logic_high" LOC = AA12;  # fmc0_LA_N[19] J1 P40
 # From FMC 0
 # J1 P1
-NET "clk_IN" LOC = AE15;
-NET "clk_IN" IOSTANDARD = LVCMOS33;
+NET "clk_P_IN" LOC = AE15 | DIFF_TERM = TRUE;
+NET "clk_N_IN" LOC = AF15 | DIFF_TERM = TRUE;
+#NET "clk_IN" IOSTANDARD = LVCMOS25;
+
+
 
 # Clock constraints
 
-Net "clk_IN" TNM_NET = sys_clk_pin;
-TIMESPEC TS_sys_clk_pin = PERIOD sys_clk_pin 10 ns;
+#Net "clk_IN" TNM_NET = sys_clk_pin;
+NET "clk_P_IN" TNM_NET = "TM_sys_clk";
+NET "clk_N_IN" TNM_NET = "TM_sys_clk";
+
+TIMESPEC "TS_sys_clk" = PERIOD "TM_sys_clk"  10.0  ns HIGH 50 %;
+#TIMESPEC TS_sys_clk_pin = PERIOD sys_clk_pin 10 ns;
