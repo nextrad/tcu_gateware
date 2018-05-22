@@ -23,7 +23,7 @@ signal clk_sig      : std_logic := '0';
 signal pri_sig      : std_logic := '0';
 signal counter      : unsigned(19 downto 0) := (others => '0');
 
-constant PRESCALER  : unsigned(19 downto 0) := x"7a11f";-- 50000; -- 100MHz
+constant PRESCALER  : unsigned(19 downto 0) := x"0c350";-- 50000; -- 100MHz
 --constant PRESCALER  : unsigned(15 downto 0) := 5000; -- 10MHz
 
 begin
