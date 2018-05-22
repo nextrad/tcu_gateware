@@ -1,7 +1,8 @@
 # Set I/O standard for processor interface pins
 CONFIG VCCAUX  = 3.3;
 
-NET "pri_OUT" LOC = R8 | SLEW = "FAST"; # GPIO 0
+#NET "pri_OUT" LOC = R8 | SLEW = "FAST"; # GPIO 0
+NET "pri_OUT" LOC = W10 | SLEW = "FAST"; # fmc0_LA_P[28] J16 P5
 NET "logic_high" LOC = AA12;  # fmc0_LA_N[19] J1 P40
 # From FMC 0
 # J1 P1
