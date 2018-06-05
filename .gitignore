@@ -4,6 +4,7 @@ ise/pri_1KHz_NEXYS/*
 ise/pri_1KHz_RHINO/*
 ise/pri_adjustable_NEXYS/*
 ise/pri_adjustable_RHINO/*
+ise/tcu_v2-1/*
 
 
 !ise/**/*.xise
