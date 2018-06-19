@@ -98,9 +98,9 @@ architecture structural of tcu_fc_reg_top is
         DAT_O           : OUT   std_logic_vector(15 downto 0)
         );
     END COMPONENT;
-	 
+
 	COMPONENT chipscope_icon
-	PORT(       
+	PORT(
 		CONTROL0 : INOUT std_logic_vector(35 downto 0);
 		CONTROL1 : INOUT std_logic_vector(35 downto 0)
 		);
@@ -110,15 +110,15 @@ architecture structural of tcu_fc_reg_top is
 	signal s_control_1 : std_logic_vector(35 downto 0);
 	signal s_gpmc_debug:	std_logic_vector(52 downto 0);
 	signal s_clk_400MHz: std_logic;
-	
-		COMPONENT ila_wb
+
+		COMPONENT chipscope_ila_wb
 	PORT(
 		CLK : IN std_logic;
-		TRIG0 : IN std_logic_vector(52 downto 0);       
+		TRIG0 : IN std_logic_vector(52 downto 0);
 		CONTROL : INOUT std_logic_vector(35 downto 0)
 		);
 	END COMPONENT;
-	
+
 begin
 	o_LOGIC_HIGH <= '1';
     Inst_gpmc_wb: gpmc_wb
@@ -172,8 +172,8 @@ begin
 		CONTROL0 => s_control_0 ,
 		CONTROL1 => s_control_1
 	);
-	
-	Inst_ila_wb: ila_wb PORT MAP(
+
+	Inst_chipscope_ila_wb: chipscope_ila_wb PORT MAP(
 		CONTROL => s_control_0,
 		CLK => s_clk_400MHz,
 		TRIG0 => s_gpmc_debug
