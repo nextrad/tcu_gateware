@@ -38,11 +38,6 @@ PORT (
     pulse_params_OUT    : out   STD_LOGIC_VECTOR(79 DOWNTO 0);
 
     -- ------------------------------------------------------------------------------------------------
-    -- DEBUG PORT
-    -- ------------------------------------------------------------------------------------------------
-    control_INOUT : inout std_logic_vector(35 downto 0);
-
-    -- ------------------------------------------------------------------------------------------------
     -- WISHBONE PORTS - DO NOT MODIFY
     -- ------------------------------------------------------------------------------------------------
     CLK_I   : IN    STD_LOGIC;
@@ -110,24 +105,7 @@ ARCHITECTURE behavioral OF tcu_registers IS
     -- TODO: declare your signals here
     signal pulse_index : integer range 0 to 31 := 0;
 
-	COMPONENT chipscope_vio_tcu_registers
-	PORT(    
-		CONTROL : INOUT std_logic_vector(35 downto 0);      
-		ASYNC_IN : OUT std_logic_vector(207 downto 0)
-		);
-	END COMPONENT;
-SIGNAL s_debug           : STD_LOGIC_VECTOR(207 DOWNTO 0) := (OTHERS => '0');
 BEGIN
-
-    -- ------------------------------------------------------------------------------------------------
-    -- DEBUG SIGNALS
-    -- ------------------------------------------------------------------------------------------------
-    s_debug <= num_pulses_reg & num_repeats_reg & pre_pulse_reg & pri_pulse_width_reg & x_amp_delay_reg & l_amp_delay_reg &
-                                                                                                            pulse_params_reg((5 * 0) + 4) &
-                                                                                                            pulse_params_reg((5 * 0) + 3) &
-                                                                                                            pulse_params_reg((5 * 0) + 2) &
-                                                                                                            pulse_params_reg((5 * 0) + 1) &
-                                                                                                            pulse_params_reg((5 * 0) + 0) ;
 
     -- ------------------------------------------------------------------------------------------------
     -- WISHBONE FSM - DO NOT MODIFY
@@ -138,17 +116,16 @@ BEGIN
     begin
         address_int := TO_INTEGER(UNSIGNED(ADR_I));
         IF RISING_EDGE(CLK_I) THEN
-            -- if RST_I = '1' THEN
-            --     -- num_pulses_reg <= (OTHERS =>'0');
-            --     -- num_repeats_reg <= (OTHERS =>'0');
-            --     -- x_amp_delay_reg <= (OTHERS =>'0');
-            --     -- l_amp_delay_reg <= (OTHERS =>'0');
-            --     -- pri_pulse_width_reg <= (OTHERS =>'0');
-            --     -- pulse_params_reg <= (OTHERS => (OTHERS => '1'));
-            --     -- status_reg <= (OTHERS =>'0');
-            --     -- instruction_reg <= (OTHERS =>'0');
-            -- elsif STB_I = '1' then
-            if STB_I = '1' then
+            if RST_I = '1' THEN
+                num_pulses_reg <= (OTHERS =>'0');
+                num_repeats_reg <= (OTHERS =>'0');
+                x_amp_delay_reg <= (OTHERS =>'0');
+                l_amp_delay_reg <= (OTHERS =>'0');
+                pri_pulse_width_reg <= (OTHERS =>'0');
+                -- pulse_params_reg <= (OTHERS => (OTHERS => '1'));
+                instruction_reg <= (OTHERS =>'0');
+            elsif STB_I = '1' then
+            -- if STB_I = '1' then
                 case TO_INTEGER(UNSIGNED(ADR_I)) is
                     -- ------------------------------------------------------------------------------------------------
                     -- REGISTER: num_pulses    SIZE: 2 bytes    PERMISSIONS: read and write
@@ -272,7 +249,12 @@ BEGIN
     process(clk_IN)
     begin
         if rising_edge(clk_IN) then
-            status_reg <= status_IN;
+            status_reg          <= status_IN;
+            pulse_params_OUT    <= pulse_params_reg((5 * pulse_index) + 4) & -- frequency      [79 - 64]
+                                   pulse_params_reg((5 * pulse_index) + 3) & -- mode           [63 - 48]
+                                   pulse_params_reg((5 * pulse_index) + 2) & -- pri_upper      [47 - 32]
+                                   pulse_params_reg((5 * pulse_index) + 1) & -- pri_lower      [31 - 16]
+                                   pulse_params_reg((5 * pulse_index) + 0) ; -- rf_pulse_width [15 - 0]
         end if;
     end process;
 
@@ -289,17 +271,5 @@ BEGIN
         l_amp_delay_OUT     <= l_amp_delay_reg; -- output port
         pre_pulse_OUT       <= pre_pulse_reg; -- output port
         pri_pulse_width_OUT <= pri_pulse_width_reg(31 downto 16) & pri_pulse_width_reg(15 downto 0); -- output port
-        pulse_params_OUT    <= pulse_params_reg((5 * pulse_index) + 4) & -- frequency      [79 - 64]
-                               pulse_params_reg((5 * pulse_index) + 3) & -- mode           [63 - 48]
-                               pulse_params_reg((5 * pulse_index) + 2) & -- pri_upper      [47 - 32]
-                               pulse_params_reg((5 * pulse_index) + 1) & -- pri_lower      [31 - 16]
-                               pulse_params_reg((5 * pulse_index) + 0) ; -- rf_pulse_width [15 - 0]
-										 
-
-
-	Inst_chipscope_vio_tcu_registers: chipscope_vio_tcu_registers PORT MAP(
-		CONTROL => control_INOUT,
-		ASYNC_IN => s_debug
-	);
 
 END behavioral;
