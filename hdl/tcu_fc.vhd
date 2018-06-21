@@ -93,14 +93,35 @@ architecture behave of tcu_fc is
     signal digitize_counter         : unsigned(31 downto 0)         := (others => '0');
     signal block_counter            : unsigned(31 downto 0)         := (others => '0');
 
-begin
+    signal r_instruction            :  std_logic_vector(INSTRUCTION_WIDTH-1  downto 0);
+    signal r_num_pulses             : std_logic_vector(15 downto 0) := (others => '0');
+    signal r_num_repeats            : std_logic_vector(31 downto 0) := (others => '0');
+    signal r_x_amp_delay            : std_logic_vector(15 downto 0) := (others => '0');
+    signal r_l_amp_delay            : std_logic_vector(15 downto 0) := (others => '0');
+    signal r_pre_pulse              : std_logic_vector(15 downto 0) := (others => '0');
+    signal r_pri_pulse_width        : std_logic_vector(31 downto 0) := (others => '0');
+    -- signal r_pulse_params   : std_logic_vector(PULSE_PARAMS_WIDTH-1       downto 0) := (others => '0');
 
-    -- pulse parameter decoding
-    pre_pulse_duration      <= unsigned(pre_pulse_IN); -- = 30us
-    main_bang_duration      <= unsigned(pulse_params_IN(15 downto 0));
-    digitization_duration   <= unsigned(pulse_params_IN(47 downto 32) & pulse_params_IN(31 downto 16));-- =
-    pol_mode                <= pulse_params_IN(50 downto 48);
-    -- TODO: frequency to Pentek
+begin
+    input_registers : process(clk_IN)
+    begin
+        if rising_edge(clk_IN) then
+            -- pulse parameter decoding
+            pre_pulse_duration      <= unsigned(pre_pulse_IN); -- = 30us
+            main_bang_duration      <= unsigned(pulse_params_IN(15 downto 0));
+            digitization_duration   <= unsigned(pulse_params_IN(47 downto 32) & pulse_params_IN(31 downto 16));-- =
+            pol_mode                <= pulse_params_IN(50 downto 48);
+            -- TODO: frequency to Pentek
+
+            r_instruction <= instruction_IN;
+            r_num_pulses <= num_pulses_IN;
+            r_num_repeats <= num_repeats_IN;
+            r_x_amp_delay <= x_amp_delay_IN;
+            r_l_amp_delay <= l_amp_delay_IN;
+            r_pre_pulse <= pre_pulse_IN;
+            r_pri_pulse_width <= pri_pulse_width_IN;
+        end if;
+    end process;
 
     -- TCU FSM
     fsm : process(clk_IN, rst_IN, trigger_IN)
@@ -168,11 +189,11 @@ begin
                             pulse_index <= pulse_index + "00001";
                             digitize_counter <= (others => '0');
 
-                            if block_counter = (unsigned(num_repeats_IN)) then
+                            if block_counter = (unsigned(r_num_repeats)) then
                                 block_counter <= (others => '0');
                                 state <= DONE;
                             else
-                                if pulse_index = (unsigned(num_pulses_IN)-1) then
+                                if pulse_index = (unsigned(r_num_pulses)-1) then
                                     block_counter <= block_counter + x"00000001";
                                     pulse_index <= (others => '0');
                                 end if;
@@ -219,10 +240,16 @@ begin
         end if;
     end process;
 
-    sw_off_delay    <= unsigned(l_amp_delay_IN) when pol_mode(2) = '0' else unsigned(x_amp_delay_IN);
-    amp_on_duration <= pre_pulse_duration + main_bang_duration - sw_off_delay;
+    sw_off_delay    <= unsigned(r_l_amp_delay) when pol_mode(2) = '0' else unsigned(r_x_amp_delay);
     bias_L_OUT  <= '1' when amp_on = '1' and pol_mode(2) = '0' else '0';
     bias_X_OUT  <= '1' when amp_on = '1' and pol_mode(2) = '1' else '0';
+    process(clk_IN)
+    begin
+        if rising_edge(clk_IN) then
+            amp_on_duration <= pre_pulse_duration + main_bang_duration - sw_off_delay;
+
+        end if;
+    end process;
 
     pri : process(clk_IN, rst_IN, start_pri_flag)
     begin
@@ -242,11 +269,11 @@ begin
                     end if;
                 end if;
             end if;
+            pri_on_duration <= unsigned(r_pri_pulse_width);
+            pri_OUT <= pri_on;
         end if;
     end process;
 
-    pri_on_duration <= unsigned(pri_pulse_width_IN);
-    pri_OUT <= pri_on;
 
     amp_pol_switches : process(clk_IN, rst_IN, state)
     begin
