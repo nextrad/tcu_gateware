@@ -32,11 +32,6 @@ PORT (
     -- gpmc_clk        : OUT   STD_LOGIC;
 
     -- ------------------------------------------------------------------------------------------------
-    -- DEBUG PORTS
-    -- ------------------------------------------------------------------------------------------------
-    debug_port      : OUT   STD_LOGIC_VECTOR((52 + WB_NUMBER_OF_SLAVES) - 1 DOWNTO 0);
-
-    -- ------------------------------------------------------------------------------------------------
     -- WISHBONE SYSCON PORTS
     -- ------------------------------------------------------------------------------------------------
     CLK             : OUT   STD_LOGIC;
@@ -130,6 +125,9 @@ SIGNAL state : state_type := IDLE_STATE; -- Initialize state to IDLE_STATE
         o_CLK_200 : OUT std_logic
         );
     END COMPONENT;
+
+    signal s_debug      :   STD_LOGIC_VECTOR((52 + WB_NUMBER_OF_SLAVES) - 1 DOWNTO 0):= (OTHERS => '0');
+
 BEGIN
 
 -- ------------------------------------------------------------------------------------------------
@@ -315,5 +313,5 @@ CLK_400MHz <= s_clk_400;
     gpmc_d <= gpmc_data_o when (gpmc_n_oe = '0') else (others => 'Z');
     gpmc_data_i <= gpmc_d;
     -- gpmc_clk <= gpmc_clk_i_b;
-    debug_port <= wb_clk_sig & wb_rst_sig & we_o_sig & dat_o_sig & wb_write_req & wb_write & wb_write_end & wb_read_req & wb_read & wb_read_end & slave_select_sig & wb_stb_o_sig & adr_o_sig(25 downto 0);
+    s_debug <= wb_clk_sig & wb_rst_sig & we_o_sig & dat_o_sig & wb_write_req & wb_write & wb_write_end & wb_read_req & wb_read & wb_read_end & slave_select_sig & wb_stb_o_sig & adr_o_sig(25 downto 0);
 END behavioral;

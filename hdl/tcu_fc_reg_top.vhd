@@ -51,7 +51,6 @@ architecture structural of tcu_fc_reg_top is
         gpmc_d          : INOUT std_logic_vector(15 downto 0);
         CLK_400MHz      : OUT   std_logic;
         CLK_100MHz      : OUT   std_logic;
-        debug_port      : OUT   std_logic_vector(52 downto 0);
         CLK             : OUT   std_logic;
         RST             : OUT   std_logic;
         DAT_O           : OUT   std_logic_vector(15 downto 0);
@@ -73,10 +72,11 @@ architecture structural of tcu_fc_reg_top is
     signal s_adr        : std_logic_vector(7 downto 0);
     signal s_we         : std_logic;
     signal s_slave_sel  : std_logic;
+    signal s_clk_400MHz  : std_logic;
 
     COMPONENT tcu_fc_reg
     PORT(
-	     control_INOUT : inout std_logic_vector(35 downto 0);
+	     -- control_INOUT : inout std_logic_vector(35 downto 0);
 
         clk_IN          : IN    std_logic;
         rst_IN          : IN    std_logic;
@@ -99,28 +99,9 @@ architecture structural of tcu_fc_reg_top is
         );
     END COMPONENT;
 
-	COMPONENT chipscope_icon
-	PORT(
-		CONTROL0 : INOUT std_logic_vector(35 downto 0);
-		CONTROL1 : INOUT std_logic_vector(35 downto 0)
-		);
-	END COMPONENT;
-
-	signal s_control_0 : std_logic_vector(35 downto 0);
-	signal s_control_1 : std_logic_vector(35 downto 0);
-	signal s_gpmc_debug:	std_logic_vector(52 downto 0);
-	signal s_clk_400MHz: std_logic;
-
-		COMPONENT chipscope_ila_wb
-	PORT(
-		CLK : IN std_logic;
-		TRIG0 : IN std_logic_vector(52 downto 0);
-		CONTROL : INOUT std_logic_vector(35 downto 0)
-		);
-	END COMPONENT;
-
 begin
-	o_LOGIC_HIGH <= '1';
+
+    o_LOGIC_HIGH <= '1';
     Inst_gpmc_wb: gpmc_wb
     PORT MAP(
         gpmc_a          => i_GPMC_A,
@@ -134,7 +115,6 @@ begin
         sys_clk_N       => i_CLK_N,
         CLK_400MHz 		=> s_clk_400MHz,
         CLK_100MHz      => s_clk_100,
-        debug_port 		=> s_gpmc_debug,
         CLK             => s_clk_wb,
         RST             => s_rst_wb,
         ACK_I           => s_ack,
@@ -147,7 +127,6 @@ begin
 
     Inst_tcu_fc_reg: tcu_fc_reg
     PORT MAP(
-		control_INOUT => s_control_1,
         clk_IN          => s_clk_100,
         rst_IN          => s_rst_sys,
         trigger_IN      => i_TRIGGER,
@@ -167,16 +146,5 @@ begin
         ACK_O           => s_ack,
         DAT_O           => s_dat_s2m
     );
-
-	Inst_chipscope_icon: chipscope_icon PORT MAP(
-		CONTROL0 => s_control_0 ,
-		CONTROL1 => s_control_1
-	);
-
-	Inst_chipscope_ila_wb: chipscope_ila_wb PORT MAP(
-		CONTROL => s_control_0,
-		CLK => s_clk_400MHz,
-		TRIG0 => s_gpmc_debug
-	);
 
 end architecture;

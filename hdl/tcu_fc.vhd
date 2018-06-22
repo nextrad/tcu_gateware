@@ -4,7 +4,6 @@
 
 -- TODO:
 --      fix generics, either give all or nothing
---      drive pulse_index_OUT
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
