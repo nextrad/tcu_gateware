@@ -65,8 +65,10 @@ ARCHITECTURE behavioral OF tcu_registers IS
 
     TYPE array_type IS ARRAY (INTEGER RANGE <>) OF STD_LOGIC_VECTOR(15 DOWNTO 0);
 
-    SIGNAL num_pulses_reg       : STD_LOGIC_VECTOR(15 DOWNTO 0) := x"0006";        -- 6 pulses
-    SIGNAL num_repeats_reg      : STD_LOGIC_VECTOR(31 DOWNTO 0) := x"00000003";    -- 3 repeats
+    -- SIGNAL num_pulses_reg       : STD_LOGIC_VECTOR(15 DOWNTO 0) := x"0006";        -- 6 pulses
+    SIGNAL num_pulses_reg       : STD_LOGIC_VECTOR(15 DOWNTO 0) := x"0001";        -- 1 pulses
+    -- SIGNAL num_repeats_reg      : STD_LOGIC_VECTOR(31 DOWNTO 0) := x"00000003";    -- 3 repeats
+    SIGNAL num_repeats_reg      : STD_LOGIC_VECTOR(31 DOWNTO 0) := x"ffffffff";    --  repeats
     SIGNAL pre_pulse_reg        : STD_LOGIC_VECTOR(15 DOWNTO 0) := x"0bb8";        -- 30.0us
     SIGNAL pri_pulse_width_reg  : STD_LOGIC_VECTOR(31 DOWNTO 0) := x"0000c350";    -- 500.0us
     SIGNAL x_amp_delay_reg      : STD_LOGIC_VECTOR(15 DOWNTO 0) := x"015e";        -- 3.5us
@@ -78,17 +80,18 @@ ARCHITECTURE behavioral OF tcu_registers IS
         -- <p. width>, <pri_lower>, <pri_upper>, <mode>, <freq>
 
         -- pulse 0
-        x"03e8", x"7700", x"0001", x"0000", x"1405",
-        -- pulse 1
-        x"03e8", x"7700", x"0001", x"0001", x"1405",
-        -- pulse 2
-        x"03e8", x"7700", x"0001", x"0002", x"1405",
-        -- pulse 3
-        x"03e8", x"7700", x"0001", x"0003", x"1405",
-        -- pulse 4
-        x"03e8", x"7700", x"0001", x"0004", x"3421",
-        -- pulse 5
-        x"03e8", x"7700", x"0001", x"0005", x"3421",
+        -- x"03e8", x"7700", x"0001", x"0000", x"1405",
+        x"03e8", x"0001",  x"7700",x"0000", x"1405",
+        -- -- pulse 1
+        -- x"03e8", x"7700", x"0001", x"0001", x"1405",
+        -- -- pulse 2
+        -- x"03e8", x"7700", x"0001", x"0002", x"1405",
+        -- -- pulse 3
+        -- x"03e8", x"7700", x"0001", x"0003", x"1405",
+        -- -- pulse 4
+        -- x"03e8", x"7700", x"0001", x"0004", x"3421",
+        -- -- pulse 5
+        -- x"03e8", x"7700", x"0001", x"0005", x"3421",
 
         others => x"ffff"
 
@@ -252,8 +255,8 @@ BEGIN
             status_reg          <= status_IN;
             pulse_params_OUT    <= pulse_params_reg((5 * pulse_index) + 4) & -- frequency      [79 - 64]
                                    pulse_params_reg((5 * pulse_index) + 3) & -- mode           [63 - 48]
-                                   pulse_params_reg((5 * pulse_index) + 2) & -- pri_upper      [47 - 32]
                                    pulse_params_reg((5 * pulse_index) + 1) & -- pri_lower      [31 - 16]
+											  pulse_params_reg((5 * pulse_index) + 2) & -- pri_upper      [47 - 32]
                                    pulse_params_reg((5 * pulse_index) + 0) ; -- rf_pulse_width [15 - 0]
         end if;
     end process;
@@ -266,10 +269,12 @@ BEGIN
         status_OUT          <=  status_reg; -- output port
         instruction_OUT     <= instruction_reg; -- output port
         num_pulses_OUT      <= num_pulses_reg; -- output port
-        num_repeats_OUT     <= num_repeats_reg(31 downto 16) & num_repeats_reg(15 downto 0); -- output port
+        -- num_repeats_OUT     <= num_repeats_reg(31 downto 16) & num_repeats_reg(15 downto 0); -- output port
+        num_repeats_OUT     <= num_repeats_reg(15 downto 0) & num_repeats_reg(31 downto 16);  -- output port
         x_amp_delay_OUT     <= x_amp_delay_reg; -- output port
         l_amp_delay_OUT     <= l_amp_delay_reg; -- output port
         pre_pulse_OUT       <= pre_pulse_reg; -- output port
-        pri_pulse_width_OUT <= pri_pulse_width_reg(31 downto 16) & pri_pulse_width_reg(15 downto 0); -- output port
+        -- pri_pulse_width_OUT <= pri_pulse_width_reg(31 downto 16) & pri_pulse_width_reg(15 downto 0); -- output port
+        pri_pulse_width_OUT <=  pri_pulse_width_reg(15 downto 0) & pri_pulse_width_reg(31 downto 16); -- output port
 
 END behavioral;
