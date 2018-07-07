@@ -255,8 +255,8 @@ BEGIN
             status_reg          <= status_IN;
             pulse_params_OUT    <= pulse_params_reg((5 * pulse_index) + 4) & -- frequency      [79 - 64]
                                    pulse_params_reg((5 * pulse_index) + 3) & -- mode           [63 - 48]
+                                   pulse_params_reg((5 * pulse_index) + 2) & -- pri_upper      [47 - 32]
                                    pulse_params_reg((5 * pulse_index) + 1) & -- pri_lower      [31 - 16]
-											  pulse_params_reg((5 * pulse_index) + 2) & -- pri_upper      [47 - 32]
                                    pulse_params_reg((5 * pulse_index) + 0) ; -- rf_pulse_width [15 - 0]
         end if;
     end process;
@@ -269,12 +269,10 @@ BEGIN
         status_OUT          <=  status_reg; -- output port
         instruction_OUT     <= instruction_reg; -- output port
         num_pulses_OUT      <= num_pulses_reg; -- output port
-        -- num_repeats_OUT     <= num_repeats_reg(31 downto 16) & num_repeats_reg(15 downto 0); -- output port
-        num_repeats_OUT     <= num_repeats_reg(15 downto 0) & num_repeats_reg(31 downto 16);  -- output port
+        num_repeats_OUT     <= num_repeats_reg(31 downto 16) & num_repeats_reg(15 downto 0); -- output port
         x_amp_delay_OUT     <= x_amp_delay_reg; -- output port
         l_amp_delay_OUT     <= l_amp_delay_reg; -- output port
         pre_pulse_OUT       <= pre_pulse_reg; -- output port
-        -- pri_pulse_width_OUT <= pri_pulse_width_reg(31 downto 16) & pri_pulse_width_reg(15 downto 0); -- output port
-        pri_pulse_width_OUT <=  pri_pulse_width_reg(15 downto 0) & pri_pulse_width_reg(31 downto 16); -- output port
+        pri_pulse_width_OUT <= pri_pulse_width_reg(31 downto 16) & pri_pulse_width_reg(15 downto 0); -- output port
 
 END behavioral;
