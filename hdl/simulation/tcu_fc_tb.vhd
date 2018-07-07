@@ -50,7 +50,8 @@ ARCHITECTURE behavior OF tcu_fc_tb IS
          x_amp_delay_IN : IN  std_logic_vector(15 downto 0);
          l_amp_delay_IN : IN  std_logic_vector(15 downto 0);
          pri_pulse_width_IN : IN  std_logic_vector(31 downto 0);
-         pulse_params_IN : IN  std_logic_vector(95 downto 0);
+         pulse_params_IN : IN  std_logic_vector(79 downto 0);
+         pre_pulse_IN : IN std_logic_vector(15 downto 0);
          pulse_index_OUT : OUT  std_logic_vector(4 downto 0);
          status_OUT : OUT  std_logic_vector(15 downto 0);
          bias_X_OUT : OUT  std_logic;
@@ -73,7 +74,8 @@ ARCHITECTURE behavior OF tcu_fc_tb IS
    signal x_amp_delay_IN : std_logic_vector(15 downto 0) := (others => '0');
    signal l_amp_delay_IN : std_logic_vector(15 downto 0) := (others => '0');
    signal pri_pulse_width_IN : std_logic_vector(31 downto 0) := (others => '0');
-   signal pulse_params_IN : std_logic_vector(95 downto 0) := (others => '0');
+   signal pulse_params_IN : std_logic_vector(79 downto 0) := (others => '0');
+   signal pre_pulse_IN : std_logic_vector(15 downto 0) := (others => '0');
 
  	--Outputs
    signal pulse_index_OUT : std_logic_vector(4 downto 0);
@@ -102,6 +104,7 @@ BEGIN
           l_amp_delay_IN => l_amp_delay_IN,
           pri_pulse_width_IN => pri_pulse_width_IN,
           pulse_params_IN => pulse_params_IN,
+          pre_pulse_IN => pre_pulse_IN,
           pulse_index_OUT => pulse_index_OUT,
           status_OUT => status_OUT,
           bias_X_OUT => bias_X_OUT,
@@ -136,9 +139,8 @@ BEGIN
         x_amp_delay_IN <= x"012e";          -- 3us NOTE ADD 2 CYCLES
         l_amp_delay_IN <= x"012e";          -- 3us
         pri_pulse_width_IN <= x"000003e8";  --
-        --
-        pulse_params_IN <= x"7700_0001_ffff_0001_03e8_0bb8";
-
+        pre_pulse_IN <= x"0bb8";            -- 30us
+        pulse_params_IN <= x"1405_0000_7700_0001_03e8";
         wait for clk_IN_period*2;
         instruction_IN <= x"0001";          -- soft_arm <= '1'
         wait for clk_IN_period*2;
