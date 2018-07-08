@@ -119,14 +119,14 @@ NET "o_LOGIC_HIGH" LOC = AA12;  # fmc0_LA_N[19] J1 P40
 
 # Set location of LED pins
 
-#NET "o_LED_RHINO[0]" LOC = Y3;
-#NET "o_LED_RHINO[1]" LOC = Y1;
-#NET "o_LED_RHINO[2]" LOC = W2;
-#NET "o_LED_RHINO[3]" LOC = W1;
-#NET "o_LED_RHINO[4]" LOC = V3;
-#NET "o_LED_RHINO[5]" LOC = V1;
-#NET "o_LED_RHINO[6]" LOC = U2;
-#NET "o_LED_RHINO[7]" LOC = U1;
+NET "o_LED_RHINO[0]" LOC = Y3;
+NET "o_LED_RHINO[1]" LOC = Y1;
+NET "o_LED_RHINO[2]" LOC = W2;
+NET "o_LED_RHINO[3]" LOC = W1;
+NET "o_LED_RHINO[4]" LOC = V3;
+NET "o_LED_RHINO[5]" LOC = V1;
+NET "o_LED_RHINO[6]" LOC = U2;
+NET "o_LED_RHINO[7]" LOC = U1;
 
 #
 ## FMC105 LEDs
