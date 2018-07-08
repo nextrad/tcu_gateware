@@ -67,9 +67,9 @@ architecture behave of tcu_fc is
     constant L_POL_TX_VERTICAL      : std_logic := not L_POL_TX_HORIZONTAL;
     constant L_POL_RX_HORIZONTAL    : std_logic := '0';
     constant L_POL_RX_VERTICAL      : std_logic := not L_POL_RX_HORIZONTAL;
-    constant X_AMP_ON               : std_logic := '0';
+    constant X_AMP_ON               : std_logic := '1';
     constant X_AMP_OFF              : std_logic := not X_AMP_ON;
-    constant L_AMP_ON               : std_logic := '1';
+    constant L_AMP_ON               : std_logic := '0';
     constant L_AMP_OFF              : std_logic := not L_AMP_ON;
 
     -- pri signals
