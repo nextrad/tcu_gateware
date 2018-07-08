@@ -80,8 +80,7 @@ ARCHITECTURE behavioral OF tcu_registers IS
         -- <p. width>, <pri_lower>, <pri_upper>, <mode>, <freq>
 
         -- pulse 0
-        -- x"03e8", x"7700", x"0001", x"0000", x"1405",
-        x"03e8", x"0001",  x"7700",x"0000", x"1405",
+        x"03e8", x"7700", x"0001", x"0000", x"1405",
         -- -- pulse 1
         -- x"03e8", x"7700", x"0001", x"0001", x"1405",
         -- -- pulse 2
@@ -97,8 +96,8 @@ ARCHITECTURE behavioral OF tcu_registers IS
 
     );
     SIGNAL status_reg           : STD_LOGIC_VECTOR(15 DOWNTO 0) := (OTHERS => '0');
-    -- SIGNAL instruction_reg      : STD_LOGIC_VECTOR(15 DOWNTO 0) := (OTHERS => '0');
-    SIGNAL instruction_reg      : STD_LOGIC_VECTOR(15 DOWNTO 0) := x"0001"; -- set to ARMED for testing
+    SIGNAL instruction_reg      : STD_LOGIC_VECTOR(15 DOWNTO 0) := (OTHERS => '0');
+    --SIGNAL instruction_reg      : STD_LOGIC_VECTOR(15 DOWNTO 0) := x"0001"; -- set to ARMED for testing
 
     SIGNAL dat_o_sig            : STD_LOGIC_VECTOR(WB_DATA_BUS_WIDTH - 1 DOWNTO 0) := (OTHERS => 'Z');
 
@@ -246,9 +245,7 @@ BEGIN
     ---------------------------------------------------------------------------------------
     -- IP CORE SPECIFIC LOGIC
     ---------------------------------------------------------------------------------------
-    -- TODO: declare your logic here
-    -- (do something useful with the registers...)
-    -- The following register signals were marked as READ_ONLY (you must specify what drives them):
+
     process(clk_IN)
     begin
         if rising_edge(clk_IN) then
@@ -261,10 +258,6 @@ BEGIN
         end if;
     end process;
 
-
-    -- TODO: specify what to do with the core-specific ports
-        -- <???> <= clk_IN; -- input port
-        -- <???> <= rst_IN; -- input port
         pulse_index         <= to_integer(unsigned(pulse_index_IN)); -- input port
         status_OUT          <=  status_reg; -- output port
         instruction_OUT     <= instruction_reg; -- output port
