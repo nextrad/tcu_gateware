@@ -74,6 +74,8 @@ architecture structural of tcu_fc_reg_top is
     signal s_slave_sel  : std_logic;
     signal s_clk_400MHz  : std_logic;
 
+    signal s_status : std_logic_vector(15 downto 0);
+
     COMPONENT tcu_fc_reg
     PORT(
 	     -- control_INOUT : inout std_logic_vector(35 downto 0);
@@ -98,6 +100,13 @@ architecture structural of tcu_fc_reg_top is
         DAT_O           : OUT   std_logic_vector(15 downto 0)
         );
     END COMPONENT;
+
+    -- slow clocks for LEDs
+    signal clk_0_5Hz    : std_logic := '0';
+    signal clk_1Hz      : std_logic := '0';
+    signal clk_2Hz      : std_logic := '0';
+    signal clk_5Hz      : std_logic := '0';
+    signal clk_1KHz     : std_logic := '0';
 
 begin
 
@@ -130,8 +139,7 @@ begin
         clk_IN          => s_clk_100,
         rst_IN          => s_rst_sys,
         trigger_IN      => i_TRIGGER,
-        status_OUT(7 downto 0)      => o_LED_RHINO,
-        status_OUT(15 downto 8)      => open,
+        status_OUT      => s_status,
         bias_x_OUT      => o_BIAS_X,
         bias_l_OUT      => o_BIAS_L,
         pol_tx_x_OUT    => o_POL_TX_X,
@@ -147,5 +155,59 @@ begin
         ACK_O           => s_ack,
         DAT_O           => s_dat_s2m
     );
+
+    o_LED_RHINO <= s_status(7 downto 0);
+
+    with s_status select o_LED_FMC <=
+              clk_0_5Hz&"000"                 when x"0000",
+              clk_2Hz&(not clk_2Hz)&"00"      when x"0001",
+              clk_5Hz&clk_5Hz&clk_5Hz&clk_5Hz when x"0002",
+              clk_5Hz&clk_5Hz&clk_5Hz&clk_5Hz when x"0003",
+              clk_5Hz&clk_5Hz&clk_5Hz&clk_5Hz when x"0004",
+              "1111"                          when x"0005",
+              clk_2Hz &"00"&(not clk_2Hz)     when OTHERS;
+
+        -- slow clock to drive LEDs
+        process (s_clk_100)
+        variable prescaler_0_5Hz    : integer := 0;
+        variable prescaler_1Hz      : integer := 0;
+        variable prescaler_2Hz      : integer := 0;
+        variable prescaler_5Hz      : integer := 0;
+        variable prescaler_1KHz      : integer := 0;
+        begin
+
+            if rising_edge(s_clk_100) then
+                if prescaler_0_5Hz = 100_000_000 then
+                    clk_0_5Hz <= not clk_0_5Hz;
+                    prescaler_0_5Hz := 0;
+                else
+                    prescaler_0_5Hz := prescaler_0_5Hz + 1;
+                end if;
+                if prescaler_1Hz = 50_000_000 then
+                    clk_1Hz <= not clk_1Hz;
+                    prescaler_1Hz := 0;
+                else
+                    prescaler_1Hz := prescaler_1Hz + 1;
+                end if;
+                if prescaler_2Hz = 25_000_000 then
+                    clk_2Hz <= not clk_2Hz;
+                    prescaler_2Hz := 0;
+                else
+                    prescaler_2Hz := prescaler_2Hz + 1;
+                end if;
+                if prescaler_5Hz = 10_000_000 then
+                    clk_5Hz <= not clk_5Hz;
+                    prescaler_5Hz := 0;
+                else
+                    prescaler_5Hz := prescaler_5Hz + 1;
+                end if;
+                if prescaler_1KHz = 50_000 then
+                    clk_1KHz <= not clk_1KHz;
+                    prescaler_1KHz := 0;
+                else
+                    prescaler_1KHz := prescaler_1KHz + 1;
+                end if;
+            end if;
+        end process;
 
 end architecture;
