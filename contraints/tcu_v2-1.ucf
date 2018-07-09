@@ -173,12 +173,12 @@ NET "o_LED_FMC[3]"   LOC = W7 | IOSTANDARD = LVCMOS25;   # FMC0_LA_N33
 
 # Define system clock
 # From FMC 0
-#NET "i_CLK_P" LOC = AE15 | DIFF_TERM = TRUE;
-#NET "i_CLK_N" LOC = AF15 | DIFF_TERM = TRUE;
+NET "i_CLK_P" LOC = AE15 | DIFF_TERM = TRUE;
+NET "i_CLK_N" LOC = AF15 | DIFF_TERM = TRUE;
 
 # From INTERNAL oscillator
-NET "i_CLK_P" LOC = B14 | DIFF_TERM = TRUE;
-NET "i_CLK_N" LOC = A14 | DIFF_TERM = TRUE;
+#NET "i_CLK_P" LOC = B14 | DIFF_TERM = TRUE;
+#NET "i_CLK_N" LOC = A14 | DIFF_TERM = TRUE;
 
 # Clock constraints
 
