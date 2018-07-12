@@ -33,6 +33,7 @@ PORT (
     num_repeats_OUT     : out   STD_LOGIC_VECTOR(31 DOWNTO 0);
     x_amp_delay_OUT     : out   STD_LOGIC_VECTOR(15 DOWNTO 0);
     l_amp_delay_OUT     : out   STD_LOGIC_VECTOR(15 DOWNTO 0);
+    rex_delay_OUT       : out   STD_LOGIC_VECTOR(15 DOWNTO 0);
     pre_pulse_OUT       : out   STD_LOGIC_VECTOR(15 DOWNTO 0);
     pri_pulse_width_OUT : out   STD_LOGIC_VECTOR(31 DOWNTO 0);
     pulse_params_OUT    : out   STD_LOGIC_VECTOR(79 DOWNTO 0);
@@ -65,39 +66,23 @@ ARCHITECTURE behavioral OF tcu_registers IS
 
     TYPE array_type IS ARRAY (INTEGER RANGE <>) OF STD_LOGIC_VECTOR(15 DOWNTO 0);
 
-    -- SIGNAL num_pulses_reg       : STD_LOGIC_VECTOR(15 DOWNTO 0) := x"0006";        -- 6 pulses
     SIGNAL num_pulses_reg       : STD_LOGIC_VECTOR(15 DOWNTO 0) := x"0001";        -- 1 pulses
-    -- SIGNAL num_repeats_reg      : STD_LOGIC_VECTOR(31 DOWNTO 0) := x"00000003";    -- 3 repeats
     SIGNAL num_repeats_reg      : STD_LOGIC_VECTOR(31 DOWNTO 0) := x"ffffffff";    --  repeats
     SIGNAL pre_pulse_reg        : STD_LOGIC_VECTOR(15 DOWNTO 0) := x"0bb8";        -- 30.0us
     SIGNAL pri_pulse_width_reg  : STD_LOGIC_VECTOR(31 DOWNTO 0) := x"0000c350";    -- 500.0us
     SIGNAL x_amp_delay_reg      : STD_LOGIC_VECTOR(15 DOWNTO 0) := x"015e";        -- 3.5us
     SIGNAL l_amp_delay_reg      : STD_LOGIC_VECTOR(15 DOWNTO 0) := x"0064";        -- 1.0us
+    SIGNAL rex_delay_reg        : STD_LOGIC_VECTOR(15 DOWNTO 0) := x"0096";        -- 1.5us
 
     SIGNAL pulse_params_reg     : array_type(0 to (REGISTER_PULSE_PARAMS_END - REGISTER_PULSE_PARAMS_BASE)) :=
     (
-
         -- <p. width>, <pri_lower>, <pri_upper>, <mode>, <freq>
-
         -- pulse 0
         x"03e8", x"7700", x"0001", x"0000", x"1405",
-        -- -- pulse 1
-        -- x"03e8", x"7700", x"0001", x"0001", x"1405",
-        -- -- pulse 2
-        -- x"03e8", x"7700", x"0001", x"0002", x"1405",
-        -- -- pulse 3
-        -- x"03e8", x"7700", x"0001", x"0003", x"1405",
-        -- -- pulse 4
-        -- x"03e8", x"7700", x"0001", x"0004", x"3421",
-        -- -- pulse 5
-        -- x"03e8", x"7700", x"0001", x"0005", x"3421",
-
         others => x"ffff"
-
     );
     SIGNAL status_reg           : STD_LOGIC_VECTOR(15 DOWNTO 0) := (OTHERS => '0');
     SIGNAL instruction_reg      : STD_LOGIC_VECTOR(15 DOWNTO 0) := (OTHERS => '0');
-    --SIGNAL instruction_reg      : STD_LOGIC_VECTOR(15 DOWNTO 0) := x"0001"; -- set to ARMED for testing
 
     SIGNAL dat_o_sig            : STD_LOGIC_VECTOR(WB_DATA_BUS_WIDTH - 1 DOWNTO 0) := (OTHERS => 'Z');
 
@@ -126,6 +111,7 @@ BEGIN
                 pri_pulse_width_reg <= (OTHERS =>'0');
                 -- pulse_params_reg <= (OTHERS => (OTHERS => '1'));
                 instruction_reg <= (OTHERS =>'0');
+                rex_delay_reg <= (OTHERS =>'0');
             elsif STB_I = '1' then
             -- if STB_I = '1' then
                 case TO_INTEGER(UNSIGNED(ADR_I)) is
@@ -223,7 +209,15 @@ BEGIN
                         else
                             dat_o_sig <= pre_pulse_reg(15 downto 0);
                         end if;
-
+                    -- ------------------------------------------------------------------------------------------------
+                    -- REGISTER: pre_pulse    SIZE: 2 bytes    PERMISSIONS: read and write
+                    -- ------------------------------------------------------------------------------------------------
+                    when 170 =>
+                        if WE_I = '1' THEN
+                            rex_delay_reg(15 downto 0) <= DAT_I;
+                        else
+                            dat_o_sig <= rex_delay_reg(15 downto 0);
+                        end if;
                     when others =>
                         null;
                 end case;
@@ -234,6 +228,7 @@ BEGIN
                 l_amp_delay_reg     <= l_amp_delay_reg;
                 pri_pulse_width_reg <= pri_pulse_width_reg;
                 pre_pulse_reg       <= pre_pulse_reg;
+					 rex_delay_reg			<= rex_delay_reg;
                 -- pulse_params_reg <= pulse_params_reg;
             end if;
         END IF;
@@ -265,6 +260,7 @@ BEGIN
         num_repeats_OUT     <= num_repeats_reg(31 downto 16) & num_repeats_reg(15 downto 0); -- output port
         x_amp_delay_OUT     <= x_amp_delay_reg; -- output port
         l_amp_delay_OUT     <= l_amp_delay_reg; -- output port
+        rex_delay_OUT     	 <= rex_delay_reg; -- output port
         pre_pulse_OUT       <= pre_pulse_reg; -- output port
         pri_pulse_width_OUT <= pri_pulse_width_reg(31 downto 16) & pri_pulse_width_reg(15 downto 0); -- output port
 

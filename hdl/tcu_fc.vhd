@@ -29,6 +29,7 @@ port(
         num_repeats_IN          : in  std_logic_vector(31 downto 0);
         x_amp_delay_IN          : in  std_logic_vector(15 downto 0);
         l_amp_delay_IN          : in  std_logic_vector(15 downto 0);
+        rex_delay_IN            : in  std_logic_vector(15 downto 0);
         pre_pulse_IN            : in  std_logic_vector(15 downto 0);
         pri_pulse_width_IN      : in  std_logic_vector(31 downto 0);
         pulse_params_IN         : in  std_logic_vector(PULSE_PARAMS_WIDTH-1       downto 0);
@@ -59,6 +60,7 @@ architecture behave of tcu_fc is
     signal amp_on_counter           : unsigned(15 downto 0)         := (others => '0');
     signal amp_on                   : std_logic                     := '0';
     signal sw_off_delay             : unsigned(15 downto 0)         := (others => '0');
+    signal rex_delay             	: unsigned(15 downto 0)         := (others => '0');
 
     -- amplifier active high/low constants, change if needed
     constant X_POL_TX_HORIZONTAL    : std_logic := '0';
@@ -99,6 +101,7 @@ architecture behave of tcu_fc is
     signal r_l_amp_delay            : std_logic_vector(15 downto 0) := (others => '0');
     signal r_pre_pulse              : std_logic_vector(15 downto 0) := (others => '0');
     signal r_pri_pulse_width        : std_logic_vector(31 downto 0) := (others => '0');
+    signal r_rex_delay        		: std_logic_vector(15 downto 0) := (others => '0');
     -- signal r_pulse_params   : std_logic_vector(PULSE_PARAMS_WIDTH-1       downto 0) := (others => '0');
 
 begin
@@ -119,6 +122,7 @@ begin
             r_l_amp_delay <= l_amp_delay_IN;
             r_pre_pulse <= pre_pulse_IN;
             r_pri_pulse_width <= pri_pulse_width_IN;
+				r_rex_delay	<= rex_delay_IN;
         end if;
     end process;
 
@@ -190,6 +194,7 @@ begin
 
                             if block_counter = (unsigned(r_num_repeats)) then
                                 block_counter <= (others => '0');
+										  pulse_index <= (others => '0');
                                 state <= DONE;
                             else
                                 if pulse_index = (unsigned(r_num_pulses)-1) then
@@ -205,7 +210,11 @@ begin
 
                     when DONE =>
                         status_OUT(2 downto 0) <= "101";
-                        state <= DONE;
+								if soft_arm = '1' then
+									state <= DONE;
+								else
+									state <= IDLE;
+								end if;
 
                     when OTHERS =>
                         status_OUT(2 downto 0) <= "110";
@@ -238,15 +247,15 @@ begin
             end if;
         end if;
     end process;
-
+	 
+	 rex_delay <= unsigned(r_rex_delay);
     sw_off_delay    <= unsigned(r_l_amp_delay) when pol_mode(2) = '0' else unsigned(r_x_amp_delay);
-    bias_L_OUT  <= '1' when amp_on = '1' and pol_mode(2) = '0' else '0';
-    bias_X_OUT  <= '1' when amp_on = '1' and pol_mode(2) = '1' else '0';
+    bias_L_OUT  <= L_AMP_ON when amp_on = '1' and pol_mode(2) = '0' else L_AMP_OFF;
+    bias_X_OUT  <= X_AMP_ON when amp_on = '1' and pol_mode(2) = '1' else X_AMP_OFF;
     process(clk_IN)
     begin
         if rising_edge(clk_IN) then
-            amp_on_duration <= pre_pulse_duration + main_bang_duration - sw_off_delay;
-
+            amp_on_duration <= pre_pulse_duration + main_bang_duration - sw_off_delay + rex_delay;
         end if;
     end process;
 

@@ -60,7 +60,7 @@ ARCHITECTURE behavioral OF gpmc_wb IS
 -- ------------------------------------------------------------------------------------------------
     -- simple_16bit_slave
     CONSTANT SLAVE_0_START      : INTEGER := 0;
-    CONSTANT SLAVE_0_END        : INTEGER := 169;
+    CONSTANT SLAVE_0_END        : INTEGER := 170;
 
 -- ------------------------------------------------------------------------------------------------
 -- SIGNAL DECLARATIONS

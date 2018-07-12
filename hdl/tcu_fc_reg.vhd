@@ -50,6 +50,7 @@ architecture structural of tcu_fc_reg is
     signal num_repeats      : std_logic_vector (31 downto 0);
     signal x_amp_delay      : std_logic_vector (15 downto 0);
     signal l_amp_delay      : std_logic_vector (15 downto 0);
+    signal rex_delay        : std_logic_vector (15 downto 0);
     signal pri_pulse_width  : std_logic_vector (31 downto 0);
     signal pulse_params     : std_logic_vector (79 downto 0);
 
@@ -74,6 +75,7 @@ architecture structural of tcu_fc_reg is
         num_repeats_OUT : OUT std_logic_vector(31 downto 0);
         x_amp_delay_OUT : OUT std_logic_vector(15 downto 0);
         l_amp_delay_OUT : OUT std_logic_vector(15 downto 0);
+        rex_delay_OUT : OUT std_logic_vector(15 downto 0);
         pri_pulse_width_OUT : OUT std_logic_vector(31 downto 0);
         pulse_params_OUT : OUT std_logic_vector(79 downto 0);
         pre_pulse_OUT         : out   STD_LOGIC_VECTOR(15 DOWNTO 0);
@@ -92,6 +94,7 @@ architecture structural of tcu_fc_reg is
         num_repeats_IN : IN std_logic_vector(31 downto 0);
         x_amp_delay_IN : IN std_logic_vector(15 downto 0);
         l_amp_delay_IN : IN std_logic_vector(15 downto 0);
+        rex_delay_IN : IN std_logic_vector(15 downto 0);
         pri_pulse_width_IN : IN std_logic_vector(31 downto 0);
         pulse_params_IN : IN std_logic_vector(79 downto 0);
         pulse_index_OUT : OUT std_logic_vector(4 downto 0);
@@ -118,6 +121,7 @@ begin
         num_repeats_OUT => num_repeats,
         x_amp_delay_OUT => x_amp_delay,
         l_amp_delay_OUT => l_amp_delay,
+        rex_delay_OUT => rex_delay,
         pri_pulse_width_OUT => pri_pulse_width,
         pulse_params_OUT => pulse_params,
         pre_pulse_OUT => pre_pulse,
@@ -140,6 +144,7 @@ begin
         num_repeats_IN => num_repeats,
         x_amp_delay_IN => x_amp_delay,
         l_amp_delay_IN => l_amp_delay,
+        rex_delay_In => rex_delay,
         pri_pulse_width_IN => pri_pulse_width,
         pulse_params_IN => pulse_params,
         pulse_index_OUT => pulse_index,

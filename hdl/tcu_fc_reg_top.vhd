@@ -25,6 +25,8 @@ entity tcu_fc_reg_top is
         o_POL_TX_L      : out std_logic;
         o_POL_RX_L      : out std_logic;
         o_PRI           : out std_logic;
+        o_TRIGGER	      : out std_logic;
+		  o_STATUS			: out std_logic;
 
         -- LED indicator ports
         o_LED_RHINO     : out   std_logic_vector(7 downto 0);
@@ -157,8 +159,14 @@ begin
     );
 
     o_LED_RHINO <= s_status(7 downto 0);
-
-    with s_status select o_LED_FMC <=
+	
+	with s_status select o_TRIGGER <=
+              '1' when x"0002",
+              '1' when x"0003",
+              '1' when x"0004",
+				  '0' when OTHERS;
+   
+	with s_status select o_LED_FMC <=
               clk_0_5Hz&"000"                 when x"0000",
               clk_2Hz&(not clk_2Hz)&"00"      when x"0001",
               clk_5Hz&clk_5Hz&clk_5Hz&clk_5Hz when x"0002",
@@ -166,6 +174,15 @@ begin
               clk_5Hz&clk_5Hz&clk_5Hz&clk_5Hz when x"0004",
               "1111"                          when x"0005",
               clk_2Hz &"00"&(not clk_2Hz)     when OTHERS;
+				  
+	    with s_status select o_STATUS <=
+              clk_1Hz   when x"0000",
+              clk_2Hz   when x"0001",
+              clk_5Hz   when x"0002",
+              clk_5Hz   when x"0003",
+              clk_5Hz   when x"0004",
+              '1' 		when x"0005",
+              clk_0_5Hz when OTHERS;
 
         -- slow clock to drive LEDs
         process (s_clk_100)
@@ -173,7 +190,7 @@ begin
         variable prescaler_1Hz      : integer := 0;
         variable prescaler_2Hz      : integer := 0;
         variable prescaler_5Hz      : integer := 0;
-        variable prescaler_1KHz      : integer := 0;
+        variable prescaler_1KHz     : integer := 0;
         begin
 
             if rising_edge(s_clk_100) then
