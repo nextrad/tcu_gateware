@@ -239,7 +239,7 @@ begin
                 end if;
                 if amp_on = '1' then
                     amp_on_counter <= amp_on_counter + x"0001";
-                    if amp_on_counter = (amp_on_duration-3) then -- -3 to compensate for 2 cycle lag
+                    if amp_on_counter = (amp_on_duration-1) then -- -3 to compensate for 2 cycle lag
                         amp_on <= '0';
                         amp_on_counter <= (others => '0');
                     end if;
