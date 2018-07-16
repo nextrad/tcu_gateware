@@ -164,7 +164,7 @@ begin
                         status_OUT(2 downto 0) <= "010";
                         start_amp_flag <= '1';
                         pre_pulse_counter <= pre_pulse_counter + x"0001";
-                        if pre_pulse_counter = (pre_pulse_duration-1) then
+                        if pre_pulse_counter >= (pre_pulse_duration-1) then
                             start_amp_flag <= '0';
                             start_pri_flag <= '1';
                             state <= MAIN_BANG;
@@ -177,7 +177,7 @@ begin
                         status_OUT(2 downto 0) <= "011";
                         start_pri_flag <= '0';
                         main_bang_counter <= main_bang_counter + x"0001";
-                        if main_bang_counter = (main_bang_duration-1) then
+                        if main_bang_counter >= (main_bang_duration-1) then
                             state <= DIGITIZE;
                             main_bang_counter <= (others => '0');
                         else
@@ -188,11 +188,11 @@ begin
                         status_OUT(2 downto 0) <= "100";
                         digitize_counter <= digitize_counter + x"00000001";
 
-                        if digitize_counter = (digitization_duration-1)  then
+                        if digitize_counter >= (digitization_duration-1)  then
                             pulse_index <= pulse_index + "00001";
                             digitize_counter <= (others => '0');
 
-                            if block_counter = (unsigned(r_num_repeats)) then
+                            if block_counter >= (unsigned(r_num_repeats)) then
                                 block_counter <= (others => '0');
 										  pulse_index <= (others => '0');
                                 state <= DONE;
@@ -239,7 +239,7 @@ begin
                 end if;
                 if amp_on = '1' then
                     amp_on_counter <= amp_on_counter + x"0001";
-                    if amp_on_counter = (amp_on_duration-1) then -- -3 to compensate for 2 cycle lag
+                    if amp_on_counter >= (amp_on_duration-1) then -- -3 to compensate for 2 cycle lag
                         amp_on <= '0';
                         amp_on_counter <= (others => '0');
                     end if;
@@ -247,7 +247,7 @@ begin
             end if;
         end if;
     end process;
-	 
+
 	 rex_delay <= unsigned(r_rex_delay);
     sw_off_delay    <= unsigned(r_l_amp_delay) when pol_mode(2) = '0' else unsigned(r_x_amp_delay);
     bias_L_OUT  <= L_AMP_ON when amp_on = '1' and pol_mode(2) = '0' else L_AMP_OFF;
@@ -271,7 +271,7 @@ begin
                 end if;
                 if pri_on = '1' then
                     pri_on_counter <= pri_on_counter + x"000001";
-                    if pri_on_counter = (pri_on_duration-1) then
+                    if pri_on_counter >= (pri_on_duration) then
                         pri_on <= '0';
                         pri_on_counter <= (others => '0');
                     end if;
