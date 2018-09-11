@@ -101,6 +101,7 @@ architecture behave of tcu_fc is
     signal main_bang_duration       : unsigned(15 downto 0)         := (others => '0');
     signal digitization_duration    : unsigned(31 downto 0)         := (others => '0');
     signal pol_mode                 : std_logic_vector(2 downto 0)  := (others => '0');
+    signal frequency                : std_logic_vector(15 downto 0)         := (others => '0');
 
     -- other signals
     signal pulse_index              : unsigned(4 downto 0)          := (others => '0');
@@ -120,7 +121,7 @@ architecture behave of tcu_fc is
     signal r_rex_delay              : std_logic_vector(15 downto 0) := (others => '0');
     -- signal r_pulse_params   : std_logic_vector(PULSE_PARAMS_WIDTH-1       downto 0) := (others => '0');
 
-    --	Ethernet Signal declaration section
+    --    Ethernet Signal declaration section
     attribute S: string;
     attribute keep : string;
 
@@ -129,51 +130,51 @@ architecture behave of tcu_fc is
     attribute S of GIGE_RX_ER : signal is "TRUE";
 
     -- define constants
-    constant UDP_TX_DATA_BYTE_LENGTH : integer := 16;		--not SET TO MINIMUM LENGTH
+    constant UDP_TX_DATA_BYTE_LENGTH : integer := 16;        --not SET TO MINIMUM LENGTH
     constant UDP_RX_DATA_BYTE_LENGTH : integer := 37;
-    constant TX_DELAY						: integer := 100;
+    constant TX_DELAY                        : integer := 100;
 
     -- system control
-    signal clk_125mhz   		: std_logic;
-    signal clk_100mhz    	: std_logic;
-    signal clk_25mhz    		: std_logic;
-    signal sys_reset     	: std_logic;
-    signal sysclk_locked 	: std_logic;
+    signal clk_125mhz           : std_logic;
+    signal clk_100mhz        : std_logic;
+    signal clk_25mhz            : std_logic;
+    signal sys_reset         : std_logic;
+    signal sysclk_locked     : std_logic;
 
     -- MAC signals
     signal udp_tx_pkt_data  : std_logic_vector (8 * UDP_TX_DATA_BYTE_LENGTH - 1 downto 0);
-    signal udp_tx_pkt_vld 	: std_logic;
+    signal udp_tx_pkt_vld     : std_logic;
     signal udp_tx_pkt_sent  : std_logic;
     signal udp_tx_pkt_vld_r : std_logic;
-    signal udp_tx_rdy			: std_logic;
+    signal udp_tx_rdy            : std_logic;
 
     signal udp_rx_pkt_data  : std_logic_vector(8 * UDP_RX_DATA_BYTE_LENGTH - 1 downto 0);
     signal udp_rx_pkt_data_r: std_logic_vector(8 * UDP_RX_DATA_BYTE_LENGTH - 1 downto 0);
     signal udp_rx_pkt_req   : std_logic;
-    signal udp_rx_rdy			: std_logic;
-    signal udp_rx_rdy_r  	: std_logic;
+    signal udp_rx_rdy            : std_logic;
+    signal udp_rx_rdy_r      : std_logic;
 
 
     signal dst_mac_addr     : std_logic_vector(47 downto 0);
-    --	signal tx_state			: std_logic_vector(2 downto 0) := "000";
-    signal rx_state			: std_logic_vector(1 downto 0) := "00";
-    signal locked				: std_logic;
-    signal mac_init_done		: std_logic;
+    --    signal tx_state            : std_logic_vector(2 downto 0) := "000";
+    signal rx_state            : std_logic_vector(1 downto 0) := "00";
+    signal locked                : std_logic;
+    signal mac_init_done        : std_logic;
     signal GIGE_GTX_CLK_r   : std_logic;
-    signal GIGE_MDC_r			: std_logic;
+    signal GIGE_MDC_r            : std_logic;
 
-    signal tx_delay_cnt		: integer := 0;
+    signal tx_delay_cnt        : integer := 0;
 
-    signal udp_send_packet	: std_logic;
-    signal udp_send_flag		: std_logic;
+    signal udp_send_packet    : std_logic;
+    signal udp_send_flag        : std_logic;
     signal udp_receive_packet: std_logic_vector(1 downto 0) := "00";
-    --	signal udp_receive_flag	: std_logic  := '0';
-    signal udp_packet			: std_logic_vector (8 * UDP_TX_DATA_BYTE_LENGTH - 1 downto 0);
-    signal rex_set				: std_logic;
+    --    signal udp_receive_flag    : std_logic  := '0';
+    signal udp_packet            : std_logic_vector (8 * UDP_TX_DATA_BYTE_LENGTH - 1 downto 0);
+    signal rex_set                : std_logic;
 
-    signal l_band_freq	: std_logic_vector (15 downto 0) := x"1405";
-    signal x_band_freq	: std_logic_vector (15 downto 0) := x"3421";
-    signal pol				: std_logic_vector (15 downto 0) := x"0000";
+    signal l_band_freq    : std_logic_vector (15 downto 0) := x"1405";
+    signal x_band_freq    : std_logic_vector (15 downto 0) := x"3421";
+    signal pol                : std_logic_vector (15 downto 0) := x"0000";
 
     ---------------------------------------------------------------
     ------------------ UDP Core Declaration Start -----------------
@@ -230,7 +231,13 @@ begin
             main_bang_duration      <= unsigned(pulse_params_IN(15 downto 0));
             digitization_duration   <= unsigned(pulse_params_IN(47 downto 32) & pulse_params_IN(31 downto 16));-- =
             pol_mode                <= pulse_params_IN(50 downto 48);
-            -- TODO: frequency to Pentek
+            frequency               <= pulse_params_IN(79 downto 64);
+
+            if pol_mode(2) = '1' then
+                x_band_freq <= frequency;
+            else
+                l_band_freq <= frequency;
+            end if;
 
             r_instruction <= instruction_IN;
             r_num_pulses <= num_pulses_IN;
@@ -239,7 +246,7 @@ begin
             r_l_amp_delay <= l_amp_delay_IN;
             r_pre_pulse <= pre_pulse_IN;
             r_pri_pulse_width <= pri_pulse_width_IN;
-                r_rex_delay    <= rex_delay_IN;
+            r_rex_delay <= rex_delay_IN;
         end if;
     end process;
 
@@ -255,6 +262,7 @@ begin
                 state               <= IDLE;
                 start_amp_flag      <= '0';
                 start_pri_flag      <= '0';
+                udp_send_packet     <= '0';
             else
 
                 case(state) is
@@ -280,9 +288,11 @@ begin
                     when PRE_PULSE =>
                         status_OUT(2 downto 0) <= "010";
                         start_amp_flag <= '1';
+                        udp_send_packet <= '1';
                         pre_pulse_counter <= pre_pulse_counter + x"0001";
                         if pre_pulse_counter >= (pre_pulse_duration-1) then
                             start_amp_flag <= '0';
+                            udp_send_packet <= '0';
                             start_pri_flag <= '1';
                             state <= MAIN_BANG;
                             pre_pulse_counter <= (others => '0');
@@ -433,20 +443,47 @@ begin
         end if;
     end process;
 
+
+    --udp_packet <= x"0d000000000004000300" & l_band_freq & x_band_freq & pol;
+    freq_set : process(udp_send_packet, clk_IN)
+    begin
+        if(rising_edge(clk_IN)) then
+            if(udp_send_packet = '1' and udp_send_flag <= '0') then
+                udp_send_flag <= '1';
+                udp_tx_pkt_vld_r <= '0';
+            elsif(udp_tx_rdy = '1' and udp_send_flag = '1') then
+                if(tx_delay_cnt = TX_DELAY) then
+                    tx_delay_cnt <= 0;
+                    udp_tx_pkt_vld_r <= '1'; -- LAUNCH
+                    udp_tx_pkt_data  <= x"0d000000000004000300" & l_band_freq & x_band_freq & pol; -- x"0d000000000004000300140534210000";
+                    udp_send_flag <= '0';
+                else
+                    udp_tx_pkt_vld_r <= '0';
+                    tx_delay_cnt <= tx_delay_cnt + 1;
+                end if;
+            else
+                udp_tx_pkt_vld_r <= '0'; -- ARM
+            end if;
+        end if;
+
+    end process;
+
+    udp_tx_pkt_vld <= udp_tx_pkt_vld_r;
+
     ---------------------------------------------------------------
     ---------------- UDP Core Instantiation START -----------------
     ---------------------------------------------------------------
-    Inst_UDP_1GbE: UDP_1GbE 
+    Inst_UDP_1GbE: UDP_1GbE
     generic map(
         UDP_TX_DATA_BYTE_LENGTH => UDP_TX_DATA_BYTE_LENGTH,
         UDP_RX_DATA_BYTE_LENGTH => UDP_RX_DATA_BYTE_LENGTH
-	 )
+     )
     PORT MAP(
         -- user logic interface
-        own_ip_addr     => x"c0a86b1c",	-- 192.168.107.28
+        own_ip_addr     => x"c0a86b1c",    -- 192.168.107.28
         own_mac_addr    => x"0e0e0e0e0e0b",
         -- NOTE: this might be different for PASSIVES *************
-        dst_ip_addr     => x"c0a86b1d",	-- 192.168.107.29
+        dst_ip_addr     => x"c0a86b1d",    -- 192.168.107.29
         dst_mac_addr    => x"0e0e0e0e0e0c",
 
         udp_src_port    => x"1f40", --8000
