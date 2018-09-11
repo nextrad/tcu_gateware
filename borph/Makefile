@@ -1,4 +1,4 @@
-BOF_FILE=tcu_v2-1.bof
+BOF_FILE=tcu_v2-1-udp.bof
 SYM_FILE=tcu_v2-1_registers.sym
 # BIN_FILE=tcu_top.bin
 BIN_FILE=tcu_fc_reg_top.bin
