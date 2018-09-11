@@ -288,11 +288,9 @@ begin
                     when PRE_PULSE =>
                         status_OUT(2 downto 0) <= "010";
                         start_amp_flag <= '1';
-                        udp_send_packet <= '1';
                         pre_pulse_counter <= pre_pulse_counter + x"0001";
                         if pre_pulse_counter >= (pre_pulse_duration-1) then
                             start_amp_flag <= '0';
-                            udp_send_packet <= '0';
                             start_pri_flag <= '1';
                             state <= MAIN_BANG;
                             pre_pulse_counter <= (others => '0');
@@ -363,8 +361,10 @@ begin
             else
                 if start_amp_flag = '1' then
                     amp_on <= '1';
+						  udp_send_packet <= '1';
                 end if;
                 if amp_on = '1' then
+							udp_send_packet <= '0';
                     amp_on_counter <= amp_on_counter + x"0001";
                     if amp_on_counter >= (amp_on_duration-1) then -- -3 to compensate for 2 cycle lag
                         amp_on <= '0';
