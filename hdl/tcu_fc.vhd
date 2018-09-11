@@ -484,7 +484,8 @@ begin
         own_mac_addr    => x"0e0e0e0e0e0b",
         -- NOTE: this might be different for PASSIVES *************
         dst_ip_addr     => x"c0a86b1d",    -- 192.168.107.29
-        dst_mac_addr    => x"0e0e0e0e0e0c",
+--        dst_mac_addr    => x"0e0e0e0e0e0c", -- MAC REX
+        dst_mac_addr    => x"60eb692a0d27", -- MAC Laptop
 
         udp_src_port    => x"1f40", --8000
         udp_dst_port    => x"1f43", --8003
