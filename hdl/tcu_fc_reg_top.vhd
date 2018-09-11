@@ -1,6 +1,9 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
+Library UNISIM;
+use UNISIM.vcomponents.all;
+
 entity tcu_fc_reg_top is
   port (
         -- External clock source
@@ -30,9 +33,23 @@ entity tcu_fc_reg_top is
 
         -- LED indicator ports
         o_LED_RHINO     : out   std_logic_vector(7 downto 0);
-        o_LED_FMC       : out   std_logic_vector(3 downto 0)
+        o_LED_FMC       : out   std_logic_vector(3 downto 0);
 
-        -- TODO: 1Gbps ethernet ports
+        -- 1Gbps ethernet ports
+        GIGE_COL        : in std_logic;
+        GIGE_CRS        : in std_logic;
+        GIGE_MDC        : out std_logic;
+        GIGE_MDIO       : inout std_logic;
+        GIGE_TX_CLK     : in std_logic;
+        GIGE_nRESET     : out std_logic;
+        GIGE_RXD        : in std_logic_vector(7 downto 0);
+        GIGE_RX_CLK     : in std_logic;
+        GIGE_RX_DV      : in std_logic;
+        GIGE_RX_ER      : in std_logic;
+        GIGE_TXD        : out std_logic_vector(7 downto 0);
+        GIGE_GTX_CLK    : out std_logic;
+        GIGE_TX_EN      : out std_logic;
+        GIGE_TX_ER      : out std_logic
   );
 end entity;
 
@@ -53,6 +70,8 @@ architecture structural of tcu_fc_reg_top is
         gpmc_d          : INOUT std_logic_vector(15 downto 0);
         CLK_400MHz      : OUT   std_logic;
         CLK_100MHz      : OUT   std_logic;
+        CLK_125MHz      : OUT   STD_LOGIC;
+        CLK_locked      : OUT   STD_LOGIC;
         CLK             : OUT   std_logic;
         RST             : OUT   std_logic;
         DAT_O           : OUT   std_logic_vector(15 downto 0);
@@ -65,6 +84,8 @@ architecture structural of tcu_fc_reg_top is
 
 
     signal s_clk_100    : std_logic;
+    signal s_clk_125    : std_logic;
+    signal s_clk_locked : std_logic;
     signal s_rst_sys    : std_logic;
     signal s_clk_wb     : std_logic;
     signal s_rst_wb     : std_logic;
@@ -83,6 +104,8 @@ architecture structural of tcu_fc_reg_top is
          -- control_INOUT : inout std_logic_vector(35 downto 0);
 
         clk_IN          : IN    std_logic;
+        clk_125MHz_IN           : in  std_logic;
+        clk_locked_IN           : in  std_logic;
         rst_IN          : IN    std_logic;
         trigger_IN      : IN    std_logic;
         CLK_I           : IN    std_logic;
@@ -99,7 +122,21 @@ architecture structural of tcu_fc_reg_top is
         pol_rx_l_OUT    : OUT   std_logic;
         pri_OUT         : OUT   std_logic;
         ACK_O           : OUT   std_logic;
-        DAT_O           : OUT   std_logic_vector(15 downto 0)
+        DAT_O           : OUT   std_logic_vector(15 downto 0);
+        GIGE_COL        : in std_logic;
+        GIGE_CRS        : in std_logic;
+        GIGE_MDC        : out std_logic;
+        GIGE_MDIO       : inout std_logic;
+        GIGE_TX_CLK     : in std_logic;
+        GIGE_nRESET     : out std_logic;
+        GIGE_RXD        : in std_logic_vector(7 downto 0);
+        GIGE_RX_CLK     : in std_logic;
+        GIGE_RX_DV      : in std_logic;
+        GIGE_RX_ER      : in std_logic;
+        GIGE_TXD        : out std_logic_vector(7 downto 0);
+        GIGE_GTX_CLK    : out std_logic;
+        GIGE_TX_EN      : out std_logic;
+        GIGE_TX_ER      : out std_logic
         );
     END COMPONENT;
 
@@ -109,6 +146,9 @@ architecture structural of tcu_fc_reg_top is
     signal clk_2Hz      : std_logic := '0';
     signal clk_5Hz      : std_logic := '0';
     signal clk_1KHz     : std_logic := '0';
+    
+    
+    signal s_GIGE_RX_CLK     : std_logic := '0';
 
 begin
 
@@ -126,6 +166,8 @@ begin
         sys_clk_N       => i_CLK_N,
         CLK_400MHz      => s_clk_400MHz,
         CLK_100MHz      => s_clk_100,
+        CLK_125MHz      => s_clk_125,
+        CLK_locked      => s_clk_locked,
         CLK             => s_clk_wb,
         RST             => s_rst_wb,
         ACK_I           => s_ack,
@@ -136,9 +178,20 @@ begin
         slave_sel_OUT   => s_slave_sel
     );
 
+   IBUFG_inst : IBUFG
+   generic map (
+      IBUF_LOW_PWR => False, -- Low power (TRUE) vs. performance (FALSE) setting for referenced I/O standards
+      IOSTANDARD => "DEFAULT")
+   port map (
+      O => s_GIGE_RX_CLK, -- Clock buffer output
+      I => GIGE_RX_CLK  -- Clock buffer input (connect directly to top-level port)
+   );
+
     Inst_tcu_fc_reg: tcu_fc_reg
     PORT MAP(
         clk_IN          => s_clk_100,
+        clk_125MHz_IN          => s_clk_125,
+        clk_locked_IN          => s_clk_locked,
         rst_IN          => s_rst_sys,
         trigger_IN      => i_TRIGGER,
         status_OUT      => s_status,
@@ -155,7 +208,21 @@ begin
         DAT_I           => s_dat_m2s,
         ADR_I           => s_adr,
         ACK_O           => s_ack,
-        DAT_O           => s_dat_s2m
+        DAT_O           => s_dat_s2m,
+        GIGE_COL => GIGE_COL,
+        GIGE_CRS => GIGE_CRS,
+        GIGE_MDC => GIGE_MDC,
+        GIGE_MDIO => GIGE_MDIO,
+        GIGE_TX_CLK => GIGE_TX_CLK,
+        GIGE_nRESET => GIGE_nRESET,
+        GIGE_RXD => GIGE_RXD,
+        GIGE_RX_CLK => s_GIGE_RX_CLK,
+        GIGE_RX_DV => GIGE_RX_DV,
+        GIGE_RX_ER => GIGE_RX_ER,
+        GIGE_TXD => GIGE_TXD,
+        GIGE_GTX_CLK => GIGE_GTX_CLK,
+        GIGE_TX_EN => GIGE_TX_EN,
+        GIGE_TX_ER => GIGE_TX_ER
     );
 
     o_LED_RHINO <= s_status(7 downto 0);

@@ -29,6 +29,8 @@ PORT (
     sys_clk_N       : IN    STD_LOGIC;
     CLK_400MHz      : OUT   STD_LOGIC;
     CLK_100MHz      : OUT   STD_LOGIC;
+    CLK_125MHz      : OUT   STD_LOGIC;
+    CLK_locked      : OUT   STD_LOGIC;
     -- gpmc_clk        : OUT   STD_LOGIC;
 
     -- ------------------------------------------------------------------------------------------------
@@ -73,6 +75,7 @@ ARCHITECTURE behavioral OF gpmc_wb IS
 
     -- Clocks
     SIGNAL s_clk_100            : STD_LOGIC := '0';
+    SIGNAL s_clk_125            : STD_LOGIC := '0';
     SIGNAL s_clk_400            : STD_LOGIC := '0';
     SIGNAL s_clk_200            : STD_LOGIC := '0';
 
@@ -116,15 +119,21 @@ SIGNAL state : state_type := IDLE_STATE; -- Initialize state to IDLE_STATE
 -- Declare clocking wizard
 -- ------------------------------------------------------------------------------------------------
 
-    COMPONENT clk_wiz_v3_6
-    PORT(
-        i_CLK_P : IN std_logic;
-        i_CLK_N : IN std_logic;
-        o_CLK_100 : OUT std_logic;
-        o_CLK_400 : OUT std_logic;
-        o_CLK_200 : OUT std_logic
-        );
-    END COMPONENT;
+    component clk_wiz_v3_6
+    port
+    (   -- Clock in ports
+        i_CLK_P         : in     std_logic;
+        i_CLK_N         : in     std_logic;
+        -- Clock out ports
+        o_CLK_100          : out    std_logic;
+        o_CLK_125          : out    std_logic;
+        o_CLK_200          : out    std_logic;
+        o_CLK_400          : out    std_logic;
+        -- Status and control signals
+        RESET             : in     std_logic;
+        LOCKED            : out    std_logic
+    );
+    end component;
 
     signal s_debug      :   STD_LOGIC_VECTOR((52 + WB_NUMBER_OF_SLAVES) - 1 DOWNTO 0):= (OTHERS => '0');
 
@@ -134,17 +143,20 @@ BEGIN
 -- Instantiate clocking wizard
 -- ------------------------------------------------------------------------------------------------
 
-CLK_400MHz <= s_clk_400;
+    CLK_400MHz <= s_clk_400;
+    CLK_125MHz <= s_clk_125;
 
     Inst_clk_wiz_v3_6: clk_wiz_v3_6
     PORT MAP(
         i_CLK_P => sys_clk_P,
         i_CLK_N => sys_clk_N,
         o_CLK_100 => s_clk_100,
+        o_CLK_125 => s_clk_125,
         o_CLK_400 => s_clk_400,
-        o_CLK_200 => s_clk_200
+        o_CLK_200 => s_clk_200,
+        RESET  => '0',
+        LOCKED => CLK_locked
     );
-
 
 -- ------------------------------------------------------------------------------------------------
 -- Instantiate input buffer for FPGA_PROC_BUS_CLK

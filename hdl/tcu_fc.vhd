@@ -19,6 +19,8 @@ generic(
     );
 port(
         clk_IN                  : in  std_logic;
+        clk_125MHz_IN           : in  std_logic;
+        clk_locked_IN           : in  std_logic;
         rst_IN                  : in  std_logic;
         trigger_IN              : in  std_logic;
 
@@ -42,9 +44,23 @@ port(
         pol_tx_x_OUT            : out std_logic;
         pol_tx_l_OUT            : out std_logic;
         pol_rx_l_OUT            : out std_logic;
-        pri_OUT                 : out std_logic
+        pri_OUT                 : out std_logic;
 
-        -- TODO: ethernet ports for frequency setting to REX
+        -- ethernet ports for frequency setting to REX/Passives
+        GIGE_COL                : in  std_logic;
+        GIGE_CRS                : in  std_logic;
+        GIGE_MDC                : out std_logic;
+        GIGE_MDIO               : inout std_logic;
+        GIGE_TX_CLK             : in  std_logic;
+        GIGE_nRESET             : out std_logic;
+        GIGE_RXD                : in  std_logic_vector(7 downto 0);
+        GIGE_RX_CLK             : in  std_logic;
+        GIGE_RX_DV              : in  std_logic;
+        GIGE_RX_ER              : in  std_logic;
+        GIGE_TXD                : out std_logic_vector(7 downto 0);
+        GIGE_GTX_CLK            : out std_logic;
+        GIGE_TX_EN              : out std_logic;
+        GIGE_TX_ER              : out std_logic
     );
 end tcu_fc;
 
@@ -60,7 +76,7 @@ architecture behave of tcu_fc is
     signal amp_on_counter           : unsigned(15 downto 0)         := (others => '0');
     signal amp_on                   : std_logic                     := '0';
     signal sw_off_delay             : unsigned(15 downto 0)         := (others => '0');
-    signal rex_delay             	: unsigned(15 downto 0)         := (others => '0');
+    signal rex_delay                : unsigned(15 downto 0)         := (others => '0');
 
     -- amplifier active high/low constants, change if needed
     constant X_POL_TX_HORIZONTAL    : std_logic := '0';
@@ -101,8 +117,109 @@ architecture behave of tcu_fc is
     signal r_l_amp_delay            : std_logic_vector(15 downto 0) := (others => '0');
     signal r_pre_pulse              : std_logic_vector(15 downto 0) := (others => '0');
     signal r_pri_pulse_width        : std_logic_vector(31 downto 0) := (others => '0');
-    signal r_rex_delay        		: std_logic_vector(15 downto 0) := (others => '0');
+    signal r_rex_delay              : std_logic_vector(15 downto 0) := (others => '0');
     -- signal r_pulse_params   : std_logic_vector(PULSE_PARAMS_WIDTH-1       downto 0) := (others => '0');
+
+    --	Ethernet Signal declaration section
+    attribute S: string;
+    attribute keep : string;
+
+    attribute S of GIGE_RXD   : signal is "TRUE";
+    attribute S of GIGE_RX_DV : signal is "TRUE";
+    attribute S of GIGE_RX_ER : signal is "TRUE";
+
+    -- define constants
+    constant UDP_TX_DATA_BYTE_LENGTH : integer := 16;		--not SET TO MINIMUM LENGTH
+    constant UDP_RX_DATA_BYTE_LENGTH : integer := 37;
+    constant TX_DELAY						: integer := 100;
+
+    -- system control
+    signal clk_125mhz   		: std_logic;
+    signal clk_100mhz    	: std_logic;
+    signal clk_25mhz    		: std_logic;
+    signal sys_reset     	: std_logic;
+    signal sysclk_locked 	: std_logic;
+
+    -- MAC signals
+    signal udp_tx_pkt_data  : std_logic_vector (8 * UDP_TX_DATA_BYTE_LENGTH - 1 downto 0);
+    signal udp_tx_pkt_vld 	: std_logic;
+    signal udp_tx_pkt_sent  : std_logic;
+    signal udp_tx_pkt_vld_r : std_logic;
+    signal udp_tx_rdy			: std_logic;
+
+    signal udp_rx_pkt_data  : std_logic_vector(8 * UDP_RX_DATA_BYTE_LENGTH - 1 downto 0);
+    signal udp_rx_pkt_data_r: std_logic_vector(8 * UDP_RX_DATA_BYTE_LENGTH - 1 downto 0);
+    signal udp_rx_pkt_req   : std_logic;
+    signal udp_rx_rdy			: std_logic;
+    signal udp_rx_rdy_r  	: std_logic;
+
+
+    signal dst_mac_addr     : std_logic_vector(47 downto 0);
+    --	signal tx_state			: std_logic_vector(2 downto 0) := "000";
+    signal rx_state			: std_logic_vector(1 downto 0) := "00";
+    signal locked				: std_logic;
+    signal mac_init_done		: std_logic;
+    signal GIGE_GTX_CLK_r   : std_logic;
+    signal GIGE_MDC_r			: std_logic;
+
+    signal tx_delay_cnt		: integer := 0;
+
+    signal udp_send_packet	: std_logic;
+    signal udp_send_flag		: std_logic;
+    signal udp_receive_packet: std_logic_vector(1 downto 0) := "00";
+    --	signal udp_receive_flag	: std_logic  := '0';
+    signal udp_packet			: std_logic_vector (8 * UDP_TX_DATA_BYTE_LENGTH - 1 downto 0);
+    signal rex_set				: std_logic;
+
+    signal l_band_freq	: std_logic_vector (15 downto 0) := x"1405";
+    signal x_band_freq	: std_logic_vector (15 downto 0) := x"3421";
+    signal pol				: std_logic_vector (15 downto 0) := x"0000";
+
+    ---------------------------------------------------------------
+    ------------------ UDP Core Declaration Start -----------------
+    ---------------------------------------------------------------
+    COMPONENT UDP_1GbE
+    generic(
+        UDP_TX_DATA_BYTE_LENGTH : natural := 1;
+        UDP_RX_DATA_BYTE_LENGTH : natural := 1
+      );
+    PORT(
+        own_ip_addr                 : in std_logic_vector(31 downto 0);
+        own_mac_addr                : in std_logic_vector(47 downto 0);
+        dst_ip_addr                 : in std_logic_vector(31 downto 0);
+        dst_mac_addr                : in std_logic_vector(47 downto 0);
+        udp_src_port                : in std_logic_vector(15 downto 0);
+        udp_dst_port                : in std_logic_vector(15 downto 0);
+        udp_tx_pkt_data             : in std_logic_vector(8 * UDP_TX_DATA_BYTE_LENGTH - 1 downto 0);
+        udp_tx_pkt_vld              : in std_logic;
+        udp_rx_pkt_req              : in std_logic;
+        GIGE_COL                    : in std_logic;
+        GIGE_CRS                    : in std_logic;
+        GIGE_TX_CLK                 : in std_logic;
+        GIGE_RXD                    : in std_logic_vector(7 downto 0);
+        GIGE_RX_CLK                 : in std_logic;
+        GIGE_RX_DV                  : in std_logic;
+        GIGE_RX_ER                  : in std_logic;
+        clk_125mhz                  : in std_logic;
+        clk_100mhz                  : in std_logic;
+        sys_rst_i                   : in std_logic;
+        sysclk_locked               : in std_logic;
+        GIGE_MDIO                   : inout std_logic;
+        udp_tx_rdy                  : out std_logic;
+        udp_rx_pkt_data             : out std_logic_vector(8 * UDP_RX_DATA_BYTE_LENGTH - 1 downto 0);
+        udp_rx_rdy                  : out std_logic;
+        mac_init_done               : out std_logic;
+        GIGE_MDC                    : out std_logic;
+        GIGE_nRESET                 : out std_logic;
+        GIGE_TXD                    : out std_logic_vector(7 downto 0);
+        GIGE_GTX_CLK                : out std_logic;
+        GIGE_TX_EN                  : out std_logic;
+        GIGE_TX_ER                  : out std_logic
+        );
+    END COMPONENT;
+    ---------------------------------------------------------------
+    ------------------ UDP Core Declaration END -------------------
+    ---------------------------------------------------------------
 
 begin
     input_registers : process(clk_IN)
@@ -122,7 +239,7 @@ begin
             r_l_amp_delay <= l_amp_delay_IN;
             r_pre_pulse <= pre_pulse_IN;
             r_pri_pulse_width <= pri_pulse_width_IN;
-				r_rex_delay	<= rex_delay_IN;
+                r_rex_delay    <= rex_delay_IN;
         end if;
     end process;
 
@@ -194,7 +311,7 @@ begin
 
                             if block_counter >= (unsigned(r_num_repeats)) then
                                 block_counter <= (others => '0');
-										  pulse_index <= (others => '0');
+                                          pulse_index <= (others => '0');
                                 state <= DONE;
                             else
                                 if pulse_index = (unsigned(r_num_pulses)-1) then
@@ -210,11 +327,11 @@ begin
 
                     when DONE =>
                         status_OUT(2 downto 0) <= "101";
-								if soft_arm = '1' then
-									state <= DONE;
-								else
-									state <= IDLE;
-								end if;
+                                if soft_arm = '1' then
+                                    state <= DONE;
+                                else
+                                    state <= IDLE;
+                                end if;
 
                     when OTHERS =>
                         status_OUT(2 downto 0) <= "110";
@@ -248,7 +365,7 @@ begin
         end if;
     end process;
 
-	 rex_delay <= unsigned(r_rex_delay);
+     rex_delay <= unsigned(r_rex_delay);
     sw_off_delay    <= unsigned(r_l_amp_delay) when pol_mode(2) = '0' else unsigned(r_x_amp_delay);
     bias_L_OUT  <= L_AMP_ON when amp_on = '1' and pol_mode(2) = '0' else L_AMP_OFF;
     bias_X_OUT  <= X_AMP_ON when amp_on = '1' and pol_mode(2) = '1' else X_AMP_OFF;
@@ -315,5 +432,60 @@ begin
             end if;
         end if;
     end process;
+
+    ---------------------------------------------------------------
+    ---------------- UDP Core Instantiation START -----------------
+    ---------------------------------------------------------------
+    Inst_UDP_1GbE: UDP_1GbE 
+    generic map(
+        UDP_TX_DATA_BYTE_LENGTH => UDP_TX_DATA_BYTE_LENGTH,
+        UDP_RX_DATA_BYTE_LENGTH => UDP_RX_DATA_BYTE_LENGTH
+	 )
+    PORT MAP(
+        -- user logic interface
+        own_ip_addr     => x"c0a86b1c",	-- 192.168.107.28
+        own_mac_addr    => x"0e0e0e0e0e0b",
+        -- NOTE: this might be different for PASSIVES *************
+        dst_ip_addr     => x"c0a86b1d",	-- 192.168.107.29
+        dst_mac_addr    => x"0e0e0e0e0e0c",
+
+        udp_src_port    => x"1f40", --8000
+        udp_dst_port    => x"1f43", --8003
+
+        udp_tx_pkt_data => udp_tx_pkt_data,
+        udp_tx_pkt_vld => udp_tx_pkt_vld,
+        udp_tx_rdy => udp_tx_rdy,
+
+        udp_rx_pkt_data => udp_rx_pkt_data,
+        udp_rx_pkt_req => udp_rx_pkt_req,
+        udp_rx_rdy => udp_rx_rdy,
+
+        mac_init_done => mac_init_done,
+
+        -- MAC interface
+        GIGE_COL => GIGE_COL,
+        GIGE_CRS => GIGE_CRS,
+        GIGE_MDC => GIGE_MDC,
+        GIGE_MDIO => GIGE_MDIO,
+        GIGE_TX_CLK => GIGE_TX_CLK,
+        GIGE_nRESET => GIGE_nRESET,
+        GIGE_RXD => GIGE_RXD,
+        GIGE_RX_CLK => GIGE_RX_CLK,
+        GIGE_RX_DV => GIGE_RX_DV,
+        GIGE_RX_ER => GIGE_RX_ER,
+        GIGE_TXD => GIGE_TXD,
+        GIGE_GTX_CLK => GIGE_GTX_CLK,
+        GIGE_TX_EN => GIGE_TX_EN,
+        GIGE_TX_ER => GIGE_TX_ER,
+
+        -- system control
+        clk_125mhz => clk_125MHz_IN,
+        clk_100mhz => clk_IN,
+        sys_rst_i => rst_IN,
+        sysclk_locked => clk_locked_IN
+    );
+    ---------------------------------------------------------------
+    ---------------- UDP Core Instantiation END -------------------
+    ---------------------------------------------------------------
 
 end behave;

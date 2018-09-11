@@ -16,6 +16,8 @@ entity tcu_fc_reg is
       -- USER-DEFINED PORTS
       -- ------------------------------------------------------------------------------------------------
       clk_IN          : in    STD_LOGIC;
+      clk_125MHz_IN           : in  std_logic;
+      clk_locked_IN           : in  std_logic;
       rst_IN          : in    STD_LOGIC;
       trigger_IN      : in  std_logic;
       status_OUT      : out std_logic_vector(15 downto 0);
@@ -36,7 +38,22 @@ entity tcu_fc_reg is
       DAT_I           : IN    STD_LOGIC_VECTOR(WB_DATA_BUS_WIDTH - 1 DOWNTO 0);
       ADR_I           : IN    STD_LOGIC_VECTOR(WB_ADDRESS_BUS_WIDTH - 1 DOWNTO 0);
       ACK_O           : OUT   STD_LOGIC;
-      DAT_O           : OUT   STD_LOGIC_VECTOR(WB_DATA_BUS_WIDTH - 1 DOWNTO 0)
+      DAT_O           : OUT   STD_LOGIC_VECTOR(WB_DATA_BUS_WIDTH - 1 DOWNTO 0);
+
+      GIGE_COL                : in  std_logic;
+      GIGE_CRS                : in  std_logic;
+      GIGE_MDC                : out std_logic;
+      GIGE_MDIO               : inout std_logic;
+      GIGE_TX_CLK             : in  std_logic;
+      GIGE_nRESET             : out std_logic;
+      GIGE_RXD                : in  std_logic_vector(7 downto 0);
+      GIGE_RX_CLK             : in  std_logic;
+      GIGE_RX_DV              : in  std_logic;
+      GIGE_RX_ER              : in  std_logic;
+      GIGE_TXD                : out std_logic_vector(7 downto 0);
+      GIGE_GTX_CLK            : out std_logic;
+      GIGE_TX_EN              : out std_logic;
+      GIGE_TX_ER              : out std_logic
   );
 end entity;
 
@@ -87,6 +104,8 @@ architecture structural of tcu_fc_reg is
     COMPONENT tcu_fc
     PORT(
         clk_IN : IN std_logic;
+        clk_125MHz_IN           : in  std_logic;
+        clk_locked_IN           : in  std_logic;
         rst_IN : IN std_logic;
         trigger_IN : IN std_logic;
         instruction_IN : IN std_logic_vector(15 downto 0);
@@ -105,7 +124,21 @@ architecture structural of tcu_fc_reg is
         pol_tx_x_OUT : OUT std_logic;
         pol_tx_l_OUT : OUT std_logic;
         pol_rx_l_OUT : OUT std_logic;
-        pri_OUT : OUT std_logic
+        pri_OUT : OUT std_logic;
+        GIGE_COL                : in  std_logic;
+        GIGE_CRS                : in  std_logic;
+        GIGE_MDC                : out std_logic;
+        GIGE_MDIO               : inout std_logic;
+        GIGE_TX_CLK             : in  std_logic;
+        GIGE_nRESET             : out std_logic;
+        GIGE_RXD                : in  std_logic_vector(7 downto 0);
+        GIGE_RX_CLK             : in  std_logic;
+        GIGE_RX_DV              : in  std_logic;
+        GIGE_RX_ER              : in  std_logic;
+        GIGE_TXD                : out std_logic_vector(7 downto 0);
+        GIGE_GTX_CLK            : out std_logic;
+        GIGE_TX_EN              : out std_logic;
+        GIGE_TX_ER              : out std_logic
         );
     END COMPONENT;
 
@@ -137,6 +170,8 @@ begin
 
     Inst_tcu_fc: tcu_fc PORT MAP(
         clk_IN => clk_IN,
+        clk_125MHz_IN => clk_125MHz_IN,
+        clk_locked_IN => clk_locked_IN,
         rst_IN => rst_IN,
         trigger_IN => trigger_IN,
         instruction_IN => instruction,
@@ -155,7 +190,21 @@ begin
         pol_tx_x_OUT => pol_tx_x_OUT,
         pol_tx_l_OUT => pol_tx_l_OUT,
         pol_rx_l_OUT => pol_rx_l_OUT,
-        pri_OUT => pri_OUT
+        pri_OUT => pri_OUT,
+        GIGE_COL => GIGE_COL,
+        GIGE_CRS => GIGE_CRS,
+        GIGE_MDC => GIGE_MDC,
+        GIGE_MDIO => GIGE_MDIO,
+        GIGE_TX_CLK => GIGE_TX_CLK,
+        GIGE_nRESET => GIGE_nRESET,
+        GIGE_RXD => GIGE_RXD,
+        GIGE_RX_CLK => GIGE_RX_CLK,
+        GIGE_RX_DV => GIGE_RX_DV,
+        GIGE_RX_ER => GIGE_RX_ER,
+        GIGE_TXD => GIGE_TXD,
+        GIGE_GTX_CLK => GIGE_GTX_CLK,
+        GIGE_TX_EN => GIGE_TX_EN,
+        GIGE_TX_ER => GIGE_TX_ER
     );
 
 end architecture;
