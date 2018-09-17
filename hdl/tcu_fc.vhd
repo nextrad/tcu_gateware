@@ -13,7 +13,6 @@ entity tcu_fc is
 generic(
         PULSE_PARAMS_WIDTH      : natural := 80;
         PULSE_PARAMS_ADDR_WIDTH : natural := 5;
-        CONTROLLER_PARAMS_WIDTH : natural := 16;
         INSTRUCTION_WIDTH       : natural := 16;
         STATUS_WIDTH            : natural := 16
     );
@@ -26,8 +25,7 @@ port(
         trigger_IN              : in  std_logic;
 
         -- instruction and data registers
-        instruction_IN          : in  std_logic_vector(INSTRUCTION_WIDTH-1        downto 0);
-        -- controller_params_IN    : in  std_logic_vector(CONTROLLER_PARAMS_WIDTH-1  downto 0);
+        instruction_IN          : in  std_logic_vector(INSTRUCTION_WIDTH - 1 downto 0);
         num_pulses_IN           : in  std_logic_vector(15 downto 0);
         num_repeats_IN          : in  std_logic_vector(31 downto 0);
         x_amp_delay_IN          : in  std_logic_vector(15 downto 0);
@@ -35,9 +33,9 @@ port(
         rex_delay_IN            : in  std_logic_vector(15 downto 0);
         pre_pulse_IN            : in  std_logic_vector(15 downto 0);
         pri_pulse_width_IN      : in  std_logic_vector(31 downto 0);
-        pulse_params_IN         : in  std_logic_vector(PULSE_PARAMS_WIDTH-1       downto 0);
-        pulse_index_OUT         : out std_logic_vector(PULSE_PARAMS_ADDR_WIDTH-1  downto 0);
-        status_OUT              : out std_logic_vector(STATUS_WIDTH-1             downto 0);
+        pulse_params_IN         : in  std_logic_vector(PULSE_PARAMS_WIDTH - 1 downto 0);
+        pulse_index_OUT         : out std_logic_vector(PULSE_PARAMS_ADDR_WIDTH - 1 downto 0);
+        status_OUT              : out std_logic_vector(STATUS_WIDTH - 1 downto 0);
 
         -- amp bias and polarization switches
         bias_x_OUT              : out std_logic;
@@ -71,10 +69,6 @@ architecture behave of tcu_fc is
     -- tcu fsm signals
     type state_type is (IDLE, ARMED, PRE_PULSE, MAIN_BANG, DIGITIZE, DONE, FAULT);
     signal state                    : state_type := IDLE;
-
-    type udp_state_type is (IDLE, SEND, STALL);
-    signal udp_state                    : udp_state_type := IDLE;
---    attribute keep of state: signal is "true";
 
     signal start_amp_flag           : std_logic                     := '0';
     signal amp_on_duration          : unsigned(15 downto 0)         := (others => '0');
@@ -128,10 +122,8 @@ architecture behave of tcu_fc is
     signal r_pre_pulse              : std_logic_vector(15 downto 0) := (others => '0');
     signal r_pri_pulse_width        : std_logic_vector(31 downto 0) := (others => '0');
     signal r_rex_delay              : std_logic_vector(15 downto 0) := (others => '0');
-    -- signal r_pulse_params   : std_logic_vector(PULSE_PARAMS_WIDTH-1       downto 0) := (others => '0');
 
     --    Ethernet Signal declaration section
-
     attribute S of GIGE_RXD   : signal is "TRUE";
     attribute S of GIGE_RX_DV : signal is "TRUE";
     attribute S of GIGE_RX_ER : signal is "TRUE";
@@ -139,13 +131,12 @@ architecture behave of tcu_fc is
     -- define constants
     constant UDP_TX_DATA_BYTE_LENGTH : integer := 16;        --not SET TO MINIMUM LENGTH
     constant UDP_RX_DATA_BYTE_LENGTH : integer := 37;
-    constant TX_DELAY                        : integer := 100;
+    constant TX_DELAY                : integer := 100;
 
     -- system control
     signal clk_125mhz               : std_logic;
     signal clk_100mhz               : std_logic;
     signal clk_50mhz                : std_logic;
-    -- signal clk_25mhz            : std_logic;
     signal sys_reset                : std_logic;
     signal sysclk_locked            : std_logic;
 
@@ -164,8 +155,6 @@ architecture behave of tcu_fc is
 
 
     signal dst_mac_addr             : std_logic_vector(47 downto 0);
-    --    signal tx_state            : std_logic_vector(2 downto 0) := "000";
-    signal rx_state                 : std_logic_vector(1 downto 0) := "00";
     signal locked                   : std_logic;
     signal mac_init_done            : std_logic;
     attribute keep of mac_init_done : signal is "true";
