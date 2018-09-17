@@ -20,7 +20,7 @@ generic(
 port(
         clk_IN                  : in  std_logic;
         clk_125MHz_IN           : in  std_logic;
-        clk_50MHz_IN           : in  std_logic;
+        clk_50MHz_IN            : in  std_logic;
         clk_locked_IN           : in  std_logic;
         rst_IN                  : in  std_logic;
         trigger_IN              : in  std_logic;
@@ -70,8 +70,8 @@ architecture behave of tcu_fc is
     attribute KEEP : string;
     -- tcu fsm signals
     type state_type is (IDLE, ARMED, PRE_PULSE, MAIN_BANG, DIGITIZE, DONE, FAULT);
-    signal state                    : state_type := IDLE;    
-    
+    signal state                    : state_type := IDLE;
+
     type udp_state_type is (IDLE, SEND, STALL);
     signal udp_state                    : udp_state_type := IDLE;
 --    attribute keep of state: signal is "true";
@@ -115,7 +115,7 @@ architecture behave of tcu_fc is
     signal main_bang_counter        : unsigned(15 downto 0)         := (others => '0');
     signal digitize_counter         : unsigned(31 downto 0)         := (others => '0');
     signal block_counter            : unsigned(31 downto 0)         := (others => '0');
-    
+
     constant UDP_DELAY              : natural                       := 1000; -- seems to output ~2 udp packets per pulse
     signal udp_counter              : integer range 0 to UDP_DELAY  := 0;
 
@@ -142,59 +142,58 @@ architecture behave of tcu_fc is
     constant TX_DELAY                        : integer := 100;
 
     -- system control
-    signal clk_125mhz           : std_logic;
-    signal clk_100mhz        : std_logic;
-    signal clk_50mhz        : std_logic;
+    signal clk_125mhz               : std_logic;
+    signal clk_100mhz               : std_logic;
+    signal clk_50mhz                : std_logic;
     -- signal clk_25mhz            : std_logic;
-    signal sys_reset         : std_logic;
-    signal sysclk_locked     : std_logic;
+    signal sys_reset                : std_logic;
+    signal sysclk_locked            : std_logic;
 
     -- MAC signals
-    signal udp_tx_pkt_data  : std_logic_vector (8 * UDP_TX_DATA_BYTE_LENGTH - 1 downto 0);
-    signal udp_tx_pkt_vld     : std_logic;
-    signal udp_tx_pkt_sent  : std_logic;
-    signal udp_tx_pkt_vld_r : std_logic;
-    signal udp_tx_rdy            : std_logic;
+    signal udp_tx_pkt_data          : std_logic_vector (8 * UDP_TX_DATA_BYTE_LENGTH - 1 downto 0);
+    signal udp_tx_pkt_vld           : std_logic;
+    signal udp_tx_pkt_sent          : std_logic;
+    signal udp_tx_pkt_vld_r         : std_logic;
+    signal udp_tx_rdy               : std_logic;
 
-    signal udp_rx_pkt_data  : std_logic_vector(8 * UDP_RX_DATA_BYTE_LENGTH - 1 downto 0);
-    signal udp_rx_pkt_data_r: std_logic_vector(8 * UDP_RX_DATA_BYTE_LENGTH - 1 downto 0);
-    signal udp_rx_pkt_req   : std_logic;
-    signal udp_rx_rdy            : std_logic;
-    signal udp_rx_rdy_r      : std_logic;
+    signal udp_rx_pkt_data          : std_logic_vector(8 * UDP_RX_DATA_BYTE_LENGTH - 1 downto 0);
+    signal udp_rx_pkt_data_r        : std_logic_vector(8 * UDP_RX_DATA_BYTE_LENGTH - 1 downto 0);
+    signal udp_rx_pkt_req           : std_logic;
+    signal udp_rx_rdy               : std_logic;
+    signal udp_rx_rdy_r             : std_logic;
 
 
-    signal dst_mac_addr     : std_logic_vector(47 downto 0);
+    signal dst_mac_addr             : std_logic_vector(47 downto 0);
     --    signal tx_state            : std_logic_vector(2 downto 0) := "000";
-    signal rx_state            : std_logic_vector(1 downto 0) := "00";
-    signal locked                : std_logic;
-    signal mac_init_done        : std_logic;
+    signal rx_state                 : std_logic_vector(1 downto 0) := "00";
+    signal locked                   : std_logic;
+    signal mac_init_done            : std_logic;
     attribute keep of mac_init_done : signal is "true";
-    
-    signal GIGE_GTX_CLK_r   : std_logic;
-    signal GIGE_MDC_r            : std_logic;
 
-    signal tx_delay_cnt        : integer := 0;
+    signal GIGE_GTX_CLK_r           : std_logic;
+    signal GIGE_MDC_r               : std_logic;
 
-    signal udp_send_packet    : std_logic:='0';
-    signal udp_send_packet_r_50    : std_logic:='0';
+    signal tx_delay_cnt             : integer := 0;
+
+    signal udp_send_packet          : std_logic:='0';
+    signal udp_send_packet_r_50     : std_logic:='0';
     signal udp_send_packet_r2_50    : std_logic:='0';
     attribute keep of udp_send_packet: signal  is "TRUE";
-    
-    signal udp_send_flag        : std_logic;
-    signal udp_receive_packet: std_logic_vector(1 downto 0) := "00";
-    --    signal udp_receive_flag    : std_logic  := '0';
-    signal udp_packet            : std_logic_vector (8 * UDP_TX_DATA_BYTE_LENGTH - 1 downto 0);
-    signal rex_set                : std_logic;
 
-    signal l_band_freq    : std_logic_vector (15 downto 0) := x"1405";
-    signal x_band_freq    : std_logic_vector (15 downto 0) := x"3421";
-    signal pol            : std_logic_vector (15 downto 0) := x"0000";    
-    signal l_band_freq_r_50    : std_logic_vector (15 downto 0) := x"1405";
-    signal x_band_freq_r_50    : std_logic_vector (15 downto 0) := x"3421";
-    signal pol_r_50            : std_logic_vector (15 downto 0) := x"0000";    
-    signal l_band_freq_r2_50    : std_logic_vector (15 downto 0) := x"1405";
-    signal x_band_freq_r2_50    : std_logic_vector (15 downto 0) := x"3421";
-    signal pol_r2_50            : std_logic_vector (15 downto 0) := x"0000";
+    signal udp_send_flag            : std_logic;
+    signal udp_receive_packet       : std_logic_vector(1 downto 0) := "00";
+    signal udp_packet               : std_logic_vector (8 * UDP_TX_DATA_BYTE_LENGTH - 1 downto 0);
+    signal rex_set                  : std_logic;
+
+    signal l_band_freq              : std_logic_vector (15 downto 0) := x"1405";
+    signal x_band_freq              : std_logic_vector (15 downto 0) := x"3421";
+    signal pol                      : std_logic_vector (15 downto 0) := x"0000";
+    signal l_band_freq_r_50         : std_logic_vector (15 downto 0) := x"1405";
+    signal x_band_freq_r_50         : std_logic_vector (15 downto 0) := x"3421";
+    signal pol_r_50                 : std_logic_vector (15 downto 0) := x"0000";
+    signal l_band_freq_r2_50        : std_logic_vector (15 downto 0) := x"1405";
+    signal x_band_freq_r2_50        : std_logic_vector (15 downto 0) := x"3421";
+    signal pol_r2_50                : std_logic_vector (15 downto 0) := x"0000";
 
     ---------------------------------------------------------------
     ------------------ UDP Core Declaration Start -----------------
@@ -269,14 +268,14 @@ begin
                 pol         <= x"0000";
             end if;
 
-            r_instruction <= instruction_IN;
-            r_num_pulses <= num_pulses_IN;
-            r_num_repeats <= num_repeats_IN;
-            r_x_amp_delay <= x_amp_delay_IN;
-            r_l_amp_delay <= l_amp_delay_IN;
-            r_pre_pulse <= pre_pulse_IN;
+            r_instruction     <= instruction_IN;
+            r_num_pulses      <= num_pulses_IN;
+            r_num_repeats     <= num_repeats_IN;
+            r_x_amp_delay     <= x_amp_delay_IN;
+            r_l_amp_delay     <= l_amp_delay_IN;
+            r_pre_pulse       <= pre_pulse_IN;
             r_pri_pulse_width <= pri_pulse_width_IN;
-            r_rex_delay <= rex_delay_IN;
+            r_rex_delay       <= rex_delay_IN;
         end if;
     end process;
 
@@ -321,10 +320,10 @@ begin
                         udp_send_packet   <= '1';
                         pre_pulse_counter <= pre_pulse_counter + x"0001";
                         if pre_pulse_counter >= (pre_pulse_duration-1) then
-                            udp_send_packet<= '0';
-                            start_amp_flag <= '0';
-                            start_pri_flag <= '1';
-                            state <= MAIN_BANG;
+                            udp_send_packet   <= '0';
+                            start_amp_flag    <= '0';
+                            start_pri_flag    <= '1';
+                            state             <= MAIN_BANG;
                             pre_pulse_counter <= (others => '0');
                         else
                             state <= PRE_PULSE;
@@ -332,8 +331,8 @@ begin
 
                     when MAIN_BANG =>
                         status_OUT(2 downto 0) <= "011";
-                        start_pri_flag <= '0';
-                        main_bang_counter <= main_bang_counter + x"0001";
+                        start_pri_flag         <= '0';
+                        main_bang_counter      <= main_bang_counter + x"0001";
                         if main_bang_counter >= (main_bang_duration-1) then
                             state <= DIGITIZE;
                             main_bang_counter <= (others => '0');
@@ -346,17 +345,17 @@ begin
                         digitize_counter <= digitize_counter + x"00000001";
 
                         if digitize_counter >= (digitization_duration-1)  then
-                            pulse_index <= pulse_index + "00001";
+                            pulse_index      <= pulse_index + "00001";
                             digitize_counter <= (others => '0');
 
                             if block_counter >= (unsigned(r_num_repeats)-1) then
                                 block_counter <= (others => '0');
-                                          pulse_index <= (others => '0');
-                                state <= DONE;
+                                pulse_index   <= (others => '0');
+                                state         <= DONE;
                             else
                                 if pulse_index = (unsigned(r_num_pulses)-1) then
                                     block_counter <= block_counter + x"00000001";
-                                    pulse_index <= (others => '0');
+                                    pulse_index   <= (others => '0');
                                 end if;
 
                                 state <= PRE_PULSE;
@@ -375,7 +374,7 @@ begin
 
                     when OTHERS =>
                         status_OUT(2 downto 0) <= "110";
-                        state <= FAULT;
+                        state                  <= FAULT;
                 end case;
 
             end if;
@@ -407,10 +406,10 @@ begin
         end if;
     end process;
 
-     rex_delay <= unsigned(r_rex_delay);
-    sw_off_delay    <= unsigned(r_l_amp_delay) when pol_mode(2) = '0' else unsigned(r_x_amp_delay);
-    bias_L_OUT  <= L_AMP_ON when amp_on = '1' and pol_mode(2) = '0' else L_AMP_OFF;
-    bias_X_OUT  <= X_AMP_ON when amp_on = '1' and pol_mode(2) = '1' else X_AMP_OFF;
+    rex_delay    <= unsigned(r_rex_delay);
+    sw_off_delay <= unsigned(r_l_amp_delay) when pol_mode(2) = '0' else unsigned(r_x_amp_delay);
+    bias_L_OUT   <= L_AMP_ON when amp_on = '1' and pol_mode(2) = '0' else L_AMP_OFF;
+    bias_X_OUT   <= X_AMP_ON when amp_on = '1' and pol_mode(2) = '1' else X_AMP_OFF;
     process(clk_IN)
     begin
         if rising_edge(clk_IN) then
@@ -441,7 +440,6 @@ begin
         end if;
     end process;
 
-
     amp_pol_switches : process(clk_IN, rst_IN, state)
     begin
         if rising_edge(clk_IN) then
@@ -457,7 +455,6 @@ begin
                     else
                         pol_tx_x_OUT <= X_POL_TX_VERTICAL;
                     end if;
-
                 -- L-band pulse
                 else
                     if pol_mode(1) = '1' then
@@ -475,101 +472,43 @@ begin
         end if;
     end process;
 
---udp_send_packet <= trigger_IN;
---udp_tx_pkt_vld_r <= udp_send_packet;
-    udp_tx_pkt_data <= x"0d000000000004000300" & l_band_freq_r2_50 & x_band_freq_r2_50 & pol_r2_50;
-    
-    process(clk_50MHz_IN)
+    synch_ff1 : process(clk_50MHz_IN)
     begin
         if rising_edge(clk_50MHz_IN) then
             udp_send_packet_r_50 <= udp_send_packet;
-            l_band_freq_r_50 <= l_band_freq;
-            x_band_freq_r_50 <= x_band_freq;
-            pol_r_50         <= pol;   
+            l_band_freq_r_50     <= l_band_freq;
+            x_band_freq_r_50     <= x_band_freq;
+            pol_r_50             <= pol;
         end if;
-    end process; 
-    
-    process(clk_50MHz_IN)
+    end process;
+
+    synch_ff2 : process(clk_50MHz_IN)
     begin
         if rising_edge(clk_50MHz_IN) then
             udp_send_packet_r2_50 <= udp_send_packet_r_50;
-            l_band_freq_r2_50 <= l_band_freq_r_50;
-            x_band_freq_r2_50 <= x_band_freq_r_50;
-            pol_r2_50         <=pol_r_50;   
+            l_band_freq_r2_50     <= l_band_freq_r_50;
+            x_band_freq_r2_50     <= x_band_freq_r_50;
+            pol_r2_50             <=pol_r_50;
         end if;
     end process;
+
+    udp_tx_pkt_data <= x"0d000000000004000300" & l_band_freq_r2_50 & x_band_freq_r2_50 & pol_r2_50;
 
     freq_set : process(clk_50MHz_IN)
     begin
         if(rising_edge(clk_50MHz_IN)) then
-            if udp_counter = 0 then -- if we're at the start of the counter
-            
+            if udp_counter = 0 then
                 if udp_send_packet_r2_50 = '1' then
                     udp_tx_pkt_vld_r <= '1';
-                    udp_counter  <= udp_counter +1;
+                    udp_counter      <= udp_counter + 1;
                 end if;
-            
-            else                    -- else, we've begun counting and should ignore everything till we're done
-                udp_tx_pkt_vld_r <= '0'; -- drive low again after one cycle
-                udp_counter  <= udp_counter +1;
+            else
+                udp_tx_pkt_vld_r <= '0';
+                udp_counter      <= udp_counter + 1;
                 if udp_counter = UDP_DELAY then
                     udp_counter <= 0;
                 end if;
             end if;
-        
-        
-        
-        
---        
---            if udp_tx_pkt_vld_r = '1' then 
-----                start_timer <= '1';
---                udp_tx_pkt_vld_r <= '0';
---            else
---                if udp_counter = 0 then -- if we're at the start of the counter
---                    if udp_send_packet_r_50 = '1' then
---                        udp_tx_pkt_vld_r <= '1';
---                        --udp_counter <= UDP_DELAY;
---                    end if;
---                else
---                  
---                end if;
---                 udp_counter  <= udp_counter +1; 
---            end if;
-        
---        if udp_tx_pkt_vld_r = '0' then -- if not transmiting
---            if udp_send_packet = '1' then
---                udp_tx_pkt_vld_r <= '1';
---            else
---                udp_tx_pkt_vld_r <= '0';
---            end if;
---        else                           -- if is transmiting
---            udp_tx_pkt_vld_r <= '0';
---        end if;    
-                
---            case udp_state is
---                when IDLE =>
---                    udp_tx_pkt_vld_r <= '0';
---                    udp_counter      <= 0;
---                    if udp_send_packet = '1' then
---                        udp_state <= SEND;
---                    else
---                        udp_state <= IDLE;
---                    end if;
---                when SEND =>
---                    udp_tx_pkt_vld_r <= '1';
---                    udp_state        <= STALL;
---                when STALL =>
---                    udp_tx_pkt_vld_r <= '0';
---                    if udp_counter >= UDP_DELAY then
---                        udp_state   <= IDLE;
---                        udp_counter <= 0;
---                    else
---                        udp_state   <= STALL;
---                        udp_counter <= udp_counter + 1;
---                    end if;
---                when OTHERS =>
---                    udp_state <= IDLE;             
---            end case;
         end if;
     end process;
 
