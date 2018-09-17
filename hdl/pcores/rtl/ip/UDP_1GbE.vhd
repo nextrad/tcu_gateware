@@ -191,48 +191,48 @@ architecture arc of UDP_1GbE is
 	---------------------------------------------------------------------------
 	--							DUBUGGING SECTION
 	---------------------------------------------------------------------------
---	component icon
---	  PORT (
---		 CONTROL0 : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
---		 CONTROL1 : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
---		 CONTROL2 : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0));
---
---	end component;
---
---	component ila0
---	  PORT (
---		 CONTROL : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
---		 CLK : IN STD_LOGIC;
---		 DATA : IN STD_LOGIC_VECTOR(299 DOWNTO 0);
---		 TRIG0 : IN STD_LOGIC_VECTOR(7 DOWNTO 0));
---
---	end component;
---
---	component ila1
---	  PORT (
---		 CONTROL : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
---		 CLK : IN STD_LOGIC;
---		 DATA : IN STD_LOGIC_VECTOR(63 DOWNTO 0);
---		 TRIG0 : IN STD_LOGIC_VECTOR(7 DOWNTO 0));
---
---	end component;
---
---	component vio
---	  PORT (
---		 CONTROL : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
---		 ASYNC_OUT : OUT STD_LOGIC_VECTOR(7 DOWNTO 0));
---
---	end component;
---
---	signal CONTROL0 : STD_LOGIC_VECTOR(35 DOWNTO 0);
---	signal CONTROL1 : STD_LOGIC_VECTOR(35 DOWNTO 0);
---	signal CONTROL2 : STD_LOGIC_VECTOR(35 DOWNTO 0);
---	signal ila_data0 :  STD_LOGIC_VECTOR(299 DOWNTO 0);
---	signal ila_data1 :  STD_LOGIC_VECTOR(63 DOWNTO 0);
---	signal trig0 : STD_LOGIC_VECTOR(7 DOWNTO 0);
---	signal trig1 : STD_LOGIC_VECTOR(7 DOWNTO 0);
---	signal vio_data :  STD_LOGIC_VECTOR(7 DOWNTO 0);
---	
+	component icon
+	  PORT (
+		 CONTROL0 : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
+		 CONTROL1 : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
+		 CONTROL2 : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0));
+
+	end component;
+
+	component ila0
+	  PORT (
+		 CONTROL : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
+		 CLK : IN STD_LOGIC;
+		 DATA : IN STD_LOGIC_VECTOR(299 DOWNTO 0);
+		 TRIG0 : IN STD_LOGIC_VECTOR(7 DOWNTO 0));
+
+	end component;
+
+	component ila1
+	  PORT (
+		 CONTROL : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
+		 CLK : IN STD_LOGIC;
+		 DATA : IN STD_LOGIC_VECTOR(63 DOWNTO 0);
+		 TRIG0 : IN STD_LOGIC_VECTOR(7 DOWNTO 0));
+
+	end component;
+
+	component vio
+	  PORT (
+		 CONTROL : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
+		 ASYNC_OUT : OUT STD_LOGIC_VECTOR(7 DOWNTO 0));
+
+	end component;
+
+	signal CONTROL0 : STD_LOGIC_VECTOR(35 DOWNTO 0);
+	signal CONTROL1 : STD_LOGIC_VECTOR(35 DOWNTO 0);
+	signal CONTROL2 : STD_LOGIC_VECTOR(35 DOWNTO 0);
+	signal ila_data0 :  STD_LOGIC_VECTOR(299 DOWNTO 0);
+	signal ila_data1 :  STD_LOGIC_VECTOR(63 DOWNTO 0);
+	signal trig0 : STD_LOGIC_VECTOR(7 DOWNTO 0);
+	signal trig1 : STD_LOGIC_VECTOR(7 DOWNTO 0);
+	signal vio_data :  STD_LOGIC_VECTOR(7 DOWNTO 0);
+	
 	---------------------------------------------------------------------------
 	--						END OF DUBUGGING SECTION
 	---------------------------------------------------------------------------
@@ -298,8 +298,9 @@ architecture arc of UDP_1GbE is
 	signal GIGE_GTX_CLK_buf	: std_logic;
 	
 	type state_type_ethernet is (arp,arp_wait,idle,wait_state,wait_state1,send_udp,wait_state2);  --type of state machine.
-	signal state_ethernet : state_type_ethernet := wait_state2; --arp --current and next state declaration.
-		
+    signal state_ethernet : state_type_ethernet := wait_state2; --arp --current and next state declaration.
+	attribute S of state_ethernet : signal is "TRUE";
+	
 	--- transmisssion constants
 	constant pkt_data_length       : integer := 8 * UDP_TX_DATA_BYTE_LENGTH;
 	constant pkt_byte_mod	       : integer := (UDP_TX_DATA_BYTE_LENGTH - 2) mod 4;

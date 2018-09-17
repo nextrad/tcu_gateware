@@ -20,6 +20,7 @@ generic(
 port(
         clk_IN                  : in  std_logic;
         clk_125MHz_IN           : in  std_logic;
+        clk_50MHz_IN           : in  std_logic;
         clk_locked_IN           : in  std_logic;
         rst_IN                  : in  std_logic;
         trigger_IN              : in  std_logic;
@@ -65,12 +66,16 @@ port(
 end tcu_fc;
 
 architecture behave of tcu_fc is
-
+    attribute S: string;
+    attribute KEEP : string;
     -- tcu fsm signals
     type state_type is (IDLE, ARMED, PRE_PULSE, MAIN_BANG, DIGITIZE, DONE, FAULT);
-    signal state                    : state_type := IDLE;
+    signal state                    : state_type := IDLE;    
+    
+    type udp_state_type is (IDLE, SEND, STALL);
+    signal udp_state                    : udp_state_type := IDLE;
+--    attribute keep of state: signal is "true";
 
-    -- amplifier signals
     signal start_amp_flag           : std_logic                     := '0';
     signal amp_on_duration          : unsigned(15 downto 0)         := (others => '0');
     signal amp_on_counter           : unsigned(15 downto 0)         := (others => '0');
@@ -101,7 +106,7 @@ architecture behave of tcu_fc is
     signal main_bang_duration       : unsigned(15 downto 0)         := (others => '0');
     signal digitization_duration    : unsigned(31 downto 0)         := (others => '0');
     signal pol_mode                 : std_logic_vector(2 downto 0)  := (others => '0');
-    signal frequency                : std_logic_vector(15 downto 0)         := (others => '0');
+    signal frequency                : std_logic_vector(15 downto 0) := (others => '0');
 
     -- other signals
     signal pulse_index              : unsigned(4 downto 0)          := (others => '0');
@@ -110,8 +115,12 @@ architecture behave of tcu_fc is
     signal main_bang_counter        : unsigned(15 downto 0)         := (others => '0');
     signal digitize_counter         : unsigned(31 downto 0)         := (others => '0');
     signal block_counter            : unsigned(31 downto 0)         := (others => '0');
+    
+    constant UDP_DELAY              : natural                       := 1000; -- seems to output ~2 udp packets per pulse
+    signal udp_counter              : integer range 0 to UDP_DELAY  := 0;
 
-    signal r_instruction            :  std_logic_vector(INSTRUCTION_WIDTH-1  downto 0);
+
+    signal r_instruction            : std_logic_vector(INSTRUCTION_WIDTH-1  downto 0);
     signal r_num_pulses             : std_logic_vector(15 downto 0) := (others => '0');
     signal r_num_repeats            : std_logic_vector(31 downto 0) := (others => '0');
     signal r_x_amp_delay            : std_logic_vector(15 downto 0) := (others => '0');
@@ -122,8 +131,6 @@ architecture behave of tcu_fc is
     -- signal r_pulse_params   : std_logic_vector(PULSE_PARAMS_WIDTH-1       downto 0) := (others => '0');
 
     --    Ethernet Signal declaration section
-    attribute S: string;
-    attribute keep : string;
 
     attribute S of GIGE_RXD   : signal is "TRUE";
     attribute S of GIGE_RX_DV : signal is "TRUE";
@@ -137,7 +144,8 @@ architecture behave of tcu_fc is
     -- system control
     signal clk_125mhz           : std_logic;
     signal clk_100mhz        : std_logic;
-    signal clk_25mhz            : std_logic;
+    signal clk_50mhz        : std_logic;
+    -- signal clk_25mhz            : std_logic;
     signal sys_reset         : std_logic;
     signal sysclk_locked     : std_logic;
 
@@ -160,12 +168,18 @@ architecture behave of tcu_fc is
     signal rx_state            : std_logic_vector(1 downto 0) := "00";
     signal locked                : std_logic;
     signal mac_init_done        : std_logic;
+    attribute keep of mac_init_done : signal is "true";
+    
     signal GIGE_GTX_CLK_r   : std_logic;
     signal GIGE_MDC_r            : std_logic;
 
     signal tx_delay_cnt        : integer := 0;
 
-    signal udp_send_packet    : std_logic;
+    signal udp_send_packet    : std_logic:='0';
+    signal udp_send_packet_r_50    : std_logic:='0';
+    signal udp_send_packet_r2_50    : std_logic:='0';
+    attribute keep of udp_send_packet: signal  is "TRUE";
+    
     signal udp_send_flag        : std_logic;
     signal udp_receive_packet: std_logic_vector(1 downto 0) := "00";
     --    signal udp_receive_flag    : std_logic  := '0';
@@ -174,7 +188,13 @@ architecture behave of tcu_fc is
 
     signal l_band_freq    : std_logic_vector (15 downto 0) := x"1405";
     signal x_band_freq    : std_logic_vector (15 downto 0) := x"3421";
-    signal pol                : std_logic_vector (15 downto 0) := x"0000";
+    signal pol            : std_logic_vector (15 downto 0) := x"0000";    
+    signal l_band_freq_r_50    : std_logic_vector (15 downto 0) := x"1405";
+    signal x_band_freq_r_50    : std_logic_vector (15 downto 0) := x"3421";
+    signal pol_r_50            : std_logic_vector (15 downto 0) := x"0000";    
+    signal l_band_freq_r2_50    : std_logic_vector (15 downto 0) := x"1405";
+    signal x_band_freq_r2_50    : std_logic_vector (15 downto 0) := x"3421";
+    signal pol_r2_50            : std_logic_vector (15 downto 0) := x"0000";
 
     ---------------------------------------------------------------
     ------------------ UDP Core Declaration Start -----------------
@@ -191,9 +211,11 @@ architecture behave of tcu_fc is
         dst_mac_addr                : in std_logic_vector(47 downto 0);
         udp_src_port                : in std_logic_vector(15 downto 0);
         udp_dst_port                : in std_logic_vector(15 downto 0);
+
         udp_tx_pkt_data             : in std_logic_vector(8 * UDP_TX_DATA_BYTE_LENGTH - 1 downto 0);
         udp_tx_pkt_vld              : in std_logic;
         udp_rx_pkt_req              : in std_logic;
+
         GIGE_COL                    : in std_logic;
         GIGE_CRS                    : in std_logic;
         GIGE_TX_CLK                 : in std_logic;
@@ -201,15 +223,21 @@ architecture behave of tcu_fc is
         GIGE_RX_CLK                 : in std_logic;
         GIGE_RX_DV                  : in std_logic;
         GIGE_RX_ER                  : in std_logic;
+
         clk_125mhz                  : in std_logic;
+--        clk_62_5mhz                  : in std_logic;
         clk_100mhz                  : in std_logic;
         sys_rst_i                   : in std_logic;
         sysclk_locked               : in std_logic;
+
         GIGE_MDIO                   : inout std_logic;
+
         udp_tx_rdy                  : out std_logic;
         udp_rx_pkt_data             : out std_logic_vector(8 * UDP_RX_DATA_BYTE_LENGTH - 1 downto 0);
         udp_rx_rdy                  : out std_logic;
+
         mac_init_done               : out std_logic;
+
         GIGE_MDC                    : out std_logic;
         GIGE_nRESET                 : out std_logic;
         GIGE_TXD                    : out std_logic_vector(7 downto 0);
@@ -235,8 +263,10 @@ begin
 
             if pol_mode(2) = '1' then
                 x_band_freq <= frequency;
+                pol         <= x"0100";
             else
                 l_band_freq <= frequency;
+                pol         <= x"0000";
             end if;
 
             r_instruction <= instruction_IN;
@@ -262,7 +292,7 @@ begin
                 state               <= IDLE;
                 start_amp_flag      <= '0';
                 start_pri_flag      <= '0';
-                udp_send_packet     <= '0';
+
             else
 
                 case(state) is
@@ -287,9 +317,11 @@ begin
 
                     when PRE_PULSE =>
                         status_OUT(2 downto 0) <= "010";
-                        start_amp_flag <= '1';
+                        start_amp_flag    <= '1';
+                        udp_send_packet   <= '1';
                         pre_pulse_counter <= pre_pulse_counter + x"0001";
                         if pre_pulse_counter >= (pre_pulse_duration-1) then
+                            udp_send_packet<= '0';
                             start_amp_flag <= '0';
                             start_pri_flag <= '1';
                             state <= MAIN_BANG;
@@ -317,7 +349,7 @@ begin
                             pulse_index <= pulse_index + "00001";
                             digitize_counter <= (others => '0');
 
-                            if block_counter >= (unsigned(r_num_repeats)) then
+                            if block_counter >= (unsigned(r_num_repeats)-1) then
                                 block_counter <= (others => '0');
                                           pulse_index <= (others => '0');
                                 state <= DONE;
@@ -361,10 +393,10 @@ begin
             else
                 if start_amp_flag = '1' then
                     amp_on <= '1';
-						  udp_send_packet <= '1';
+--						  udp_send_packet <= '1';
                 end if;
                 if amp_on = '1' then
-							udp_send_packet <= '0';
+--							udp_send_packet <= '0';
                     amp_on_counter <= amp_on_counter + x"0001";
                     if amp_on_counter >= (amp_on_duration-1) then -- -3 to compensate for 2 cycle lag
                         amp_on <= '0';
@@ -443,29 +475,102 @@ begin
         end if;
     end process;
 
-
-    --udp_packet <= x"0d000000000004000300" & l_band_freq & x_band_freq & pol;
-    freq_set : process(udp_send_packet, clk_IN)
+--udp_send_packet <= trigger_IN;
+--udp_tx_pkt_vld_r <= udp_send_packet;
+    udp_tx_pkt_data <= x"0d000000000004000300" & l_band_freq_r2_50 & x_band_freq_r2_50 & pol_r2_50;
+    
+    process(clk_50MHz_IN)
     begin
-        if(rising_edge(clk_IN)) then
-            if(udp_send_packet = '1' and udp_send_flag <= '0') then
-                udp_send_flag <= '1';
-                udp_tx_pkt_vld_r <= '0';
-            elsif(udp_tx_rdy = '1' and udp_send_flag = '1') then
-                if(tx_delay_cnt = TX_DELAY) then
-                    tx_delay_cnt <= 0;
-                    udp_tx_pkt_vld_r <= '1'; -- LAUNCH
-                    udp_tx_pkt_data  <= x"0d000000000004000300" & l_band_freq & x_band_freq & pol; -- x"0d000000000004000300140534210000";
-                    udp_send_flag <= '0';
-                else
-                    udp_tx_pkt_vld_r <= '0';
-                    tx_delay_cnt <= tx_delay_cnt + 1;
-                end if;
-            else
-                udp_tx_pkt_vld_r <= '0'; -- ARM
-            end if;
+        if rising_edge(clk_50MHz_IN) then
+            udp_send_packet_r_50 <= udp_send_packet;
+            l_band_freq_r_50 <= l_band_freq;
+            x_band_freq_r_50 <= x_band_freq;
+            pol_r_50         <= pol;   
         end if;
+    end process; 
+    
+    process(clk_50MHz_IN)
+    begin
+        if rising_edge(clk_50MHz_IN) then
+            udp_send_packet_r2_50 <= udp_send_packet_r_50;
+            l_band_freq_r2_50 <= l_band_freq_r_50;
+            x_band_freq_r2_50 <= x_band_freq_r_50;
+            pol_r2_50         <=pol_r_50;   
+        end if;
+    end process;
 
+    freq_set : process(clk_50MHz_IN)
+    begin
+        if(rising_edge(clk_50MHz_IN)) then
+            if udp_counter = 0 then -- if we're at the start of the counter
+            
+                if udp_send_packet_r2_50 = '1' then
+                    udp_tx_pkt_vld_r <= '1';
+                    udp_counter  <= udp_counter +1;
+                end if;
+            
+            else                    -- else, we've begun counting and should ignore everything till we're done
+                udp_tx_pkt_vld_r <= '0'; -- drive low again after one cycle
+                udp_counter  <= udp_counter +1;
+                if udp_counter = UDP_DELAY then
+                    udp_counter <= 0;
+                end if;
+            end if;
+        
+        
+        
+        
+--        
+--            if udp_tx_pkt_vld_r = '1' then 
+----                start_timer <= '1';
+--                udp_tx_pkt_vld_r <= '0';
+--            else
+--                if udp_counter = 0 then -- if we're at the start of the counter
+--                    if udp_send_packet_r_50 = '1' then
+--                        udp_tx_pkt_vld_r <= '1';
+--                        --udp_counter <= UDP_DELAY;
+--                    end if;
+--                else
+--                  
+--                end if;
+--                 udp_counter  <= udp_counter +1; 
+--            end if;
+        
+--        if udp_tx_pkt_vld_r = '0' then -- if not transmiting
+--            if udp_send_packet = '1' then
+--                udp_tx_pkt_vld_r <= '1';
+--            else
+--                udp_tx_pkt_vld_r <= '0';
+--            end if;
+--        else                           -- if is transmiting
+--            udp_tx_pkt_vld_r <= '0';
+--        end if;    
+                
+--            case udp_state is
+--                when IDLE =>
+--                    udp_tx_pkt_vld_r <= '0';
+--                    udp_counter      <= 0;
+--                    if udp_send_packet = '1' then
+--                        udp_state <= SEND;
+--                    else
+--                        udp_state <= IDLE;
+--                    end if;
+--                when SEND =>
+--                    udp_tx_pkt_vld_r <= '1';
+--                    udp_state        <= STALL;
+--                when STALL =>
+--                    udp_tx_pkt_vld_r <= '0';
+--                    if udp_counter >= UDP_DELAY then
+--                        udp_state   <= IDLE;
+--                        udp_counter <= 0;
+--                    else
+--                        udp_state   <= STALL;
+--                        udp_counter <= udp_counter + 1;
+--                    end if;
+--                when OTHERS =>
+--                    udp_state <= IDLE;             
+--            end case;
+        end if;
     end process;
 
     udp_tx_pkt_vld <= udp_tx_pkt_vld_r;
@@ -518,7 +623,8 @@ begin
 
         -- system control
         clk_125mhz => clk_125MHz_IN,
-        clk_100mhz => clk_IN,
+--        clk_62_5mhz => clk_50MHz_IN, -- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        clk_100mhz => clk_50MHz_IN, -- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         sys_rst_i => rst_IN,
         sysclk_locked => clk_locked_IN
     );

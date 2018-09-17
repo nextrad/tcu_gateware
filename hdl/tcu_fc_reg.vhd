@@ -17,6 +17,7 @@ entity tcu_fc_reg is
       -- ------------------------------------------------------------------------------------------------
       clk_IN          : in    STD_LOGIC;
       clk_125MHz_IN           : in  std_logic;
+      clk_50MHz_IN           : in  std_logic;
       clk_locked_IN           : in  std_logic;
       rst_IN          : in    STD_LOGIC;
       trigger_IN      : in  std_logic;
@@ -105,6 +106,7 @@ architecture structural of tcu_fc_reg is
     PORT(
         clk_IN : IN std_logic;
         clk_125MHz_IN           : in  std_logic;
+        clk_50MHz_IN           : in  std_logic;
         clk_locked_IN           : in  std_logic;
         rst_IN : IN std_logic;
         trigger_IN : IN std_logic;
@@ -171,6 +173,7 @@ begin
     Inst_tcu_fc: tcu_fc PORT MAP(
         clk_IN => clk_IN,
         clk_125MHz_IN => clk_125MHz_IN,
+        clk_50MHz_IN => clk_50MHz_IN,
         clk_locked_IN => clk_locked_IN,
         rst_IN => rst_IN,
         trigger_IN => trigger_IN,

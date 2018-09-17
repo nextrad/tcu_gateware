@@ -71,6 +71,7 @@ architecture structural of tcu_fc_reg_top is
         CLK_400MHz      : OUT   std_logic;
         CLK_100MHz      : OUT   std_logic;
         CLK_125MHz      : OUT   STD_LOGIC;
+        CLK_50MHz       : OUT   STD_LOGIC;
         CLK_locked      : OUT   STD_LOGIC;
         CLK             : OUT   std_logic;
         RST             : OUT   std_logic;
@@ -83,21 +84,22 @@ architecture structural of tcu_fc_reg_top is
     -- Interconnecting signals
 
 
-    signal s_clk_100    : std_logic;
-    signal s_clk_125    : std_logic;
-    signal s_clk_locked : std_logic;
-    signal s_rst_sys    : std_logic;
-    signal s_clk_wb     : std_logic;
-    signal s_rst_wb     : std_logic;
-    signal s_ack        : std_logic;
-    signal s_dat_m2s    : std_logic_vector(15 downto 0);
-    signal s_dat_s2m    : std_logic_vector(15 downto 0);
-    signal s_adr        : std_logic_vector(7 downto 0);
-    signal s_we         : std_logic;
-    signal s_slave_sel  : std_logic;
-    signal s_clk_400MHz  : std_logic;
+    signal s_clk_100    : std_logic:='0';
+    signal s_clk_50     : std_logic:='0';
+    signal s_clk_125    : std_logic:='0';
+    signal s_clk_locked : std_logic:='0';
+--    signal s_rst_sys    : std_logic;
+    signal s_clk_wb     : std_logic:='0';
+    signal s_rst_wb     : std_logic:='0';
+    signal s_ack        : std_logic:='0';
+    signal s_dat_m2s    : std_logic_vector(15 downto 0):=(others=>'0');
+    signal s_dat_s2m    : std_logic_vector(15 downto 0):=(others=>'0');
+    signal s_adr        : std_logic_vector(7 downto 0):=(others=>'0');
+    signal s_we         : std_logic:='0';
+    signal s_slave_sel  : std_logic:='0';
+    signal s_clk_400MHz  : std_logic:='0';
 
-    signal s_status : std_logic_vector(15 downto 0);
+    signal s_status : std_logic_vector(15 downto 0):=(others=>'0');
 
     COMPONENT tcu_fc_reg
     PORT(
@@ -105,6 +107,7 @@ architecture structural of tcu_fc_reg_top is
 
         clk_IN          : IN    std_logic;
         clk_125MHz_IN           : in  std_logic;
+        clk_50MHz_IN           : in  std_logic;
         clk_locked_IN           : in  std_logic;
         rst_IN          : IN    std_logic;
         trigger_IN      : IN    std_logic;
@@ -167,6 +170,7 @@ begin
         CLK_400MHz      => s_clk_400MHz,
         CLK_100MHz      => s_clk_100,
         CLK_125MHz      => s_clk_125,
+        CLK_50MHz       => s_clk_50,
         CLK_locked      => s_clk_locked,
         CLK             => s_clk_wb,
         RST             => s_rst_wb,
@@ -191,8 +195,9 @@ begin
     PORT MAP(
         clk_IN          => s_clk_100,
         clk_125MHz_IN          => s_clk_125,
+        clk_50MHz_IN          => s_clk_50,
         clk_locked_IN          => s_clk_locked,
-        rst_IN          => s_rst_sys,
+        rst_IN          => s_rst_wb, -- CHECK THIS
         trigger_IN      => i_TRIGGER,
         status_OUT      => s_status,
         bias_x_OUT      => o_BIAS_X,
@@ -225,7 +230,7 @@ begin
         GIGE_TX_ER => GIGE_TX_ER
     );
 
-    o_LED_RHINO <= s_status(7 downto 0);
+    o_LED_RHINO <= s_clk_locked & s_rst_wb & s_status(5 downto 0);
 
     with s_status select o_TRIGGER <=
       '1' when x"0002",
