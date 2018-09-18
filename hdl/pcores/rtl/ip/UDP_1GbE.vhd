@@ -13,6 +13,9 @@
 -- 1) Marvell 88E1111S initialization
 -- 2) UDP packet transmission and reception
 -- 2) Adopting the tri-mac-core to work on RHINO board.
+
+-- Date: 01 March 2015
+-- Revision: 01 November 2016
 ----------------------------------------------------------------------
 
 ----------------------------------------------------------------------
@@ -100,9 +103,12 @@ entity UDP_1GbE is
 		
 		-- system control
 		clk_125mhz     : in  std_logic;
-		clk_100mhz     : in  std_logic;
+		clk_62_5mhz     : in  std_logic;
 		sys_rst_i      : in  std_logic;
 		sysclk_locked  : in  std_logic
+		
+		-- debug
+		--Rx_mac_ra_dbg  : out std_logic
   );
 end UDP_1GbE;
 
@@ -192,47 +198,37 @@ architecture arc of UDP_1GbE is
 	--							DUBUGGING SECTION
 	---------------------------------------------------------------------------
 	component icon
-	  PORT (
-		 CONTROL0 : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
-		 CONTROL1 : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
-		 CONTROL2 : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0));
+	PORT (
+	 CONTROL0 : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
+	 CONTROL1 : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0));
 
 	end component;
+
 
 	component ila0
-	  PORT (
-		 CONTROL : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
-		 CLK : IN STD_LOGIC;
-		 DATA : IN STD_LOGIC_VECTOR(299 DOWNTO 0);
-		 TRIG0 : IN STD_LOGIC_VECTOR(7 DOWNTO 0));
+	PORT (
+	 CONTROL : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
+	 CLK : IN STD_LOGIC;
+	 DATA : IN STD_LOGIC_VECTOR(63 DOWNTO 0);
+	 TRIG0 : IN STD_LOGIC_VECTOR(23 downto 0));
 
 	end component;
 
-	component ila1
-	  PORT (
-		 CONTROL : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
-		 CLK : IN STD_LOGIC;
-		 DATA : IN STD_LOGIC_VECTOR(63 DOWNTO 0);
-		 TRIG0 : IN STD_LOGIC_VECTOR(7 DOWNTO 0));
 
+   component vio
+   PORT (
+	 CONTROL : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
+	 ASYNC_OUT : OUT STD_LOGIC_VECTOR(0 DOWNTO 0));
 	end component;
-
-	component vio
-	  PORT (
-		 CONTROL : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
-		 ASYNC_OUT : OUT STD_LOGIC_VECTOR(7 DOWNTO 0));
-
-	end component;
-
-	signal CONTROL0 : STD_LOGIC_VECTOR(35 DOWNTO 0);
-	signal CONTROL1 : STD_LOGIC_VECTOR(35 DOWNTO 0);
-	signal CONTROL2 : STD_LOGIC_VECTOR(35 DOWNTO 0);
-	signal ila_data0 :  STD_LOGIC_VECTOR(299 DOWNTO 0);
-	signal ila_data1 :  STD_LOGIC_VECTOR(63 DOWNTO 0);
-	signal trig0 : STD_LOGIC_VECTOR(7 DOWNTO 0);
-	signal trig1 : STD_LOGIC_VECTOR(7 DOWNTO 0);
-	signal vio_data :  STD_LOGIC_VECTOR(7 DOWNTO 0);
 	
+	signal control0 : std_logic_vector(35 downto 0);
+	signal control1 : std_logic_vector(35 downto 0);
+	signal ila_data0 : std_logic_vector(63 downto 0);
+	signal ila_data1 : std_logic_vector(63 downto 0);
+	signal trig0    : STD_LOGIC_VECTOR(23 downto 0);
+	signal trig1    : std_logic_vector(7 downto 0);
+	signal vio_data      : std_logic_vector(0 downto 0);
+
 	---------------------------------------------------------------------------
 	--						END OF DUBUGGING SECTION
 	---------------------------------------------------------------------------
@@ -243,7 +239,7 @@ architecture arc of UDP_1GbE is
 	signal  c3_rst0            : std_logic;	
 	signal c3_sys_clk_ibufg 	: std_logic;
 	--signal clk_125mhz : std_logic;
-	--signal clk_100mhz : std_logic;
+	--signal clk_62_5mhz : std_logic;
 	--signal clk_25mhz : std_logic;
 	--signal clk_6_25mhz : std_logic;
 	--signal clk_3_125mhz : std_logic;
@@ -298,9 +294,8 @@ architecture arc of UDP_1GbE is
 	signal GIGE_GTX_CLK_buf	: std_logic;
 	
 	type state_type_ethernet is (arp,arp_wait,idle,wait_state,wait_state1,send_udp,wait_state2);  --type of state machine.
-    signal state_ethernet : state_type_ethernet := wait_state2; --arp --current and next state declaration.
-	attribute S of state_ethernet : signal is "TRUE";
-	
+	signal state_ethernet : state_type_ethernet := wait_state2; --arp --current and next state declaration.
+		
 	--- transmisssion constants
 	constant pkt_data_length       : integer := 8 * UDP_TX_DATA_BYTE_LENGTH;
 	constant pkt_byte_mod	       : integer := (UDP_TX_DATA_BYTE_LENGTH - 2) mod 4;
@@ -317,9 +312,11 @@ architecture arc of UDP_1GbE is
 	constant rcv_pkt_data_mod	       : integer := (rcv_pkt_data_length - 16) mod 32;
 	constant rcv_pkt_data_word_length : integer := (rcv_pkt_data_length - 16) / 32;
 	
-	constant rcv_length_ethernet_frame             : integer := integer(ceil(real((UDP_RX_DATA_BYTE_LENGTH) / 4))); 
+	constant rcv_length_ethernet_frame  :  integer := integer(ceil(real((UDP_RX_DATA_BYTE_LENGTH) / 4))) + 1; 
 	
 	signal udp_rx_pkt_data_tmp : std_logic_vector(rcv_pkt_data_length - 1 downto 0) := (others => '0');
+	signal udp_rx_pkt_data_r   : std_logic_vector(31 downto 0) := (others => '0');
+	signal udp_rx_rdy_tmp      : std_logic := '0';
 	attribute S of udp_rx_pkt_data_tmp : signal is "TRUE";
 	
 	type array_network is array (0 to length_ethernet_frame-1) of std_logic_vector(31 downto 0); 
@@ -362,11 +359,13 @@ architecture arc of UDP_1GbE is
 	signal packet_valid : std_logic;
 	attribute S of packet_valid : signal is "TRUE";
 	
-	signal LED_data : std_logic_vector( 7 downto 0);
-	attribute S of LED_data : signal is "TRUE";
+	signal LED_data 				: std_logic_vector( 7 downto 0);
+	attribute S of LED_data 	: signal is "TRUE";
 	
-	signal Rx_mac_rd_sig : std_logic;
+	signal Rx_mac_rd_sig 		: std_logic;
 
+	signal udp_valid 				: std_logic := '0';
+	attribute S of udp_valid 	: signal is "TRUE";
 
 	signal arp_valid_response 	: std_logic;
 	signal arp_valid_response_recieved 	: std_logic;
@@ -422,7 +421,8 @@ architecture arc of UDP_1GbE is
 	
 	-- Debug signals
 	signal tx_state : std_logic_vector(2 downto 0) := "000";
-	signal rx_state : std_logic_vector(2 downto 0) := "000";
+	signal rx_state 	: std_logic_vector(2 downto 0) := "000";
+	signal rx_udp_state : std_logic_vector(3 downto 0) := "0000"; 
 	signal toggle : std_logic := '0'; -- 50 mhz user clock
 	signal toggle1 : std_logic := '0'; -- 125 mhz 
 	signal toggle2 : std_logic := '0'; -- 125 mhz 
@@ -443,8 +443,8 @@ begin
 		--//system signals
 		Reset		=> reset,
 		Clk_125M	=> clk_125mhz,
-		Clk_user	=> clk_100mhz,--!!!!!!!!!!!
-		Clk_reg	=> clk_100mhz,--!!!!!!!!!!!
+		Clk_user	=> clk_62_5mhz,--!!!!!!!!!!!
+		Clk_reg	=> clk_62_5mhz,--!!!!!!!!!!!
 		
 		-- speed settings after opencore tri-mode (PDF)!
 		-- b100 : 1000Mbit
@@ -550,17 +550,17 @@ begin
 	
 	calc_ipv4_checksum_inst : calc_ipv4_checksum
 	port map (
-		clk => clk_100mhz,--!!!!!!!!!!!
+		clk => clk_62_5mhz,--!!!!!!!!!!!
       data => eth_array(8)(31 downto 16) & eth_array(7) & eth_array(6) &
 				eth_array(5) & eth_array(4)& eth_array(3)(15 downto 0),
 		--ready : out STD_LOGIC;
       checksum => calc_checksum,
-      reset => reset
+      reset => '0'
 	);
 	
 	Rx_mac_rd <= Rx_mac_rd_sig AND Rx_mac_ra;
 	
-	ethernet_data_rec_process : process(c3_rst0,clk_100mhz)
+	ethernet_data_rec_process : process(c3_rst0,clk_62_5mhz)
 	begin
 		if( c3_rst0 = '1' ) then
 			counter_ethernet_rec <= 0;
@@ -574,10 +574,15 @@ begin
 			arp_valid <= '0';
 			arp_valid_response <= '0';
 			arp_valid_response_recieved <= '0';
-		elsif( rising_edge(clk_100mhz) ) then
+			udp_valid <= '0';
+		elsif( rising_edge(clk_62_5mhz) ) then
 			if( config_checked = '1' ) then 
 				dst_mac_addr_r <= dst_mac_addr;
-				Rx_mac_rd_sig <= '0';
+				Rx_mac_rd_sig <= '0';				
+				
+				if(tx_state = "010") then
+					udp_valid <= '0';
+				end if;
 				
 				if( arp_clear = '1' ) then
 					arp_send <= '0';
@@ -605,13 +610,24 @@ begin
 							end if;
 						end if;
 						
-						-- check if it is an ARP request, then arp_valid = '1'!!
+						
 						if( counter_ethernet_rec = 3 ) then
 							--if( Rx_mac_data = ( x"0806" & x"0001" ) AND arp_send = '0' ) then
-							if( Rx_mac_data = ( x"0806" & x"0001" ) ) then
-								arp_valid <= '1';
+						
+							-- check if it is an UDP request, then udp_valid = '1'!!
+							-- Ethernet Type = "0x0800" | Version Header = "0100" | Total Length = "0101" | Differential Services = x"0x00"
+							if( Rx_mac_data = ( x"0800" & "0100" & "0101" & x"00" ) ) then
+								udp_valid <= '1';
 							else
-								arp_valid <= '0';
+								if(udp_rx_pkt_req = '0') then
+									udp_valid <= '0';
+								end if;
+								-- check if it is an ARP request, then arp_valid = '1'!!
+								if( Rx_mac_data = ( x"0806" & x"0001" ) ) then
+									arp_valid <= '1';
+								else
+									arp_valid <= '0';
+								end if;
 							end if;
 						end if;
 						
@@ -682,8 +698,7 @@ begin
 										arp_send <= '1';
 										arp_valid_response_recieved <= '0';
 									end if;
-									
-								end if;		
+								end if;									
 								
 							end if;
 						end if;
@@ -697,51 +712,152 @@ begin
 			end if;
 		end if;
 	end process;
-
-	udp_packet_data_process : process(c3_rst0,clk_100mhz)
+	
+	
+--	udp_packet_data_process : process(clk_125mhz)
+--	begin
+--	
+--		if(rising_edge(clk_125mhz)) then
+--		case rx_udp_state is
+			
+--			when x"0" => 
+--				rx_udp_state <= x"0";
+--				udp_rx_rdy	 <= '0';
+--				counter_rx   <= 0;
+				
+--				if(packet_valid = '1') then
+--					packet_vld <= '1';
+--				end if;
+				
+--				if(counter_ethernet_rec = 10 and counter_rx = 0) then					
+--					udp_rx_pkt_data_tmp(rcv_pkt_data_length - 1 downto rcv_pkt_data_length - 16) <= Rx_mac_data(15 downto 0);
+--					counter_rx <= counter_rx + 1;
+--					rx_udp_state <= x"1";
+--				end if;
+				
+--			when x"1" => 
+--				rx_udp_state <= x"1";
+--				if(counter_rx = rcv_length_ethernet_frame ) then
+--					udp_rx_pkt_data_tmp((counter_rx * 32) - rcv_pkt_data_length - 1 downto  0) <= udp_rx_pkt_data_r(31 downto rcv_pkt_data_length - ((counter_rx * 32) - rcv_pkt_data_length));  
+--					rx_udp_state <= x"2";
+--				else
+--					  udp_rx_pkt_data_tmp(rcv_pkt_data_length - 17 - (counter_rx * 32) downto rcv_pkt_data_length - 16 - (counter_rx * 32) - 32) <= Rx_mac_data;  
+--					  counter_rx <= counter_rx + 1;	
+--				end if;	
+--				udp_rx_pkt_data_tmp((counter_rx * 32) - rcv_pkt_data_length - 1 downto  0) <= udp_rx_pkt_data_r(31 downto rcv_pkt_data_length - ((counter_rx * 32) - rcv_pkt_data_length));  
+--			when x"2" => 
+--				rx_udp_state <= x"2";
+--				packet_vld <= '0';
+--				if(udp_rx_pkt_req = '1' and udp_valid = '1') then
+--					udp_rx_pkt_data <= udp_rx_pkt_data_tmp;		   
+--					udp_rx_rdy	    <= '1';
+--					rx_udp_state <= x"3";
+--				end if;
+					
+--			when x"3" =>
+--				rx_udp_state <= x"3";
+--				if(udp_rx_pkt_req = '0') then
+--					udp_rx_rdy	 <= '0';
+--					counter_rx   <= 0;
+--					rx_udp_state <= x"0";
+--				end if;
+					
+--			when others => null;
+--		end case;
+--		end if;
+--	end process;
+	
+	udp_packet_data_process : process(c3_rst0,clk_62_5mhz)
 		
 	begin
 		if( c3_rst0 = '1' ) then
 			counter_rx <= 0;
 			packet_vld <= '0';
-		elsif( falling_edge(clk_100mhz) ) then
-				if(packet_valid = '1') then
-					packet_vld <= '1';
-				end if;
+		elsif( rising_edge(clk_62_5mhz) ) then
+	
+				udp_rx_rdy	    <= '0';
+				udp_rx_rdy_tmp  <= '0';
+			--	ila_data0(60) <= '0';
+				counter_rx 		 <= 0;
 				
-				if(counter_ethernet_rec = 10) then					
-						udp_rx_pkt_data_tmp(rcv_pkt_data_length - 1 downto rcv_pkt_data_length - 16) <= Rx_mac_data(15 downto 0);
-					   counter_rx <= 0;
-			   elsif(counter_rx < rcv_length_ethernet_frame and packet_vld = '1') then  		
+			case rx_udp_state is
+				
+				when x"0" =>
+				
+					rx_udp_state <= x"0";
 					
-						if(counter_rx < rcv_length_ethernet_frame - 1) then
-							  udp_rx_pkt_data_tmp(rcv_pkt_data_length - 17 - (counter_rx * 32) downto rcv_pkt_data_length - 16 - (counter_rx * 32) - 32) <= Rx_mac_data;  
-						else
-							if(rcv_pkt_byte_mod > 0) then		
-							   udp_rx_pkt_data_tmp(rcv_pkt_data_length - 17 - (counter_rx * 32) downto rcv_pkt_data_length - 16 - (counter_rx * 32) - rcv_pkt_data_mod) <= Rx_mac_data(31 downto 32 - rcv_pkt_data_mod);  
-							else
-								udp_rx_pkt_data_tmp(rcv_pkt_data_length - 17 - (counter_rx * 32) downto rcv_pkt_data_length - 16 - (counter_rx * 32) - 32) <= Rx_mac_data;  
-							end if;					
-						end if;	
-						counter_rx <= counter_rx + 1;										
-				else
-					counter_rx <= 0;	
-				end if;
+					if(packet_valid = '1') then
+						packet_vld <= '1';
+					end if;
+					
+					if(counter_ethernet_rec = 10 and counter_rx = 0 and packet_valid = '1') then							
+							udp_rx_pkt_data_tmp(rcv_pkt_data_length - 1 downto rcv_pkt_data_length - 16) <= Rx_mac_data(15 downto 0);
+							counter_rx <= counter_rx + 1;
+							packet_vld <= '1';
+							rx_udp_state <= x"1";
+					end if;
 				
-				if(counter_rx = rcv_length_ethernet_frame) then
+				when x"1" =>
+				
+					rx_udp_state <= x"1";
+					
+					if(counter_rx = rcv_length_ethernet_frame-1) then		
+					   --TODO: fix this to accommodate multiple cases
+						if(rcv_length_ethernet_frame = 1) then
+							--udp_rx_pkt_data_tmp((rcv_length_ethernet_frame * 32) - rcv_pkt_data_length - 1 downto  0) <= Rx_mac_data(31 downto ((rcv_length_ethernet_frame * 32) - ((rcv_length_ethernet_frame * 32) - rcv_pkt_data_length)));  --Rx_mac_data
+							udp_rx_pkt_data_tmp(7 downto  0) <= Rx_mac_data(31 downto 24);  --Rx_mac_data
+						else	
+							udp_rx_pkt_data_tmp(15 downto  0) <= Rx_mac_data(31 downto 16);
+						end if;
+						
+						counter_rx <=  counter_rx + 1;
+						rx_udp_state <= x"2";
+						
+					elsif(counter_rx < rcv_length_ethernet_frame-1 and packet_vld = '1') then 	
+						
+						--	if(counter_rx < rcv_length_ethernet_frame ) then
+						--		  udp_rx_pkt_data_tmp(rcv_pkt_data_length - 17 - (counter_rx * 32) downto rcv_pkt_data_length - 16 - (counter_rx * 32) - 32) <= Rx_mac_data;  
+						--	else
+							--	if(rcv_pkt_byte_mod > 0) then		
+									--udp_rx_pkt_data_tmp(rcv_pkt_data_length - 17 - (counter_rx * 32) downto rcv_pkt_data_length - 16 - (counter_rx * 32) - rcv_pkt_data_mod) <= Rx_mac_data(31 downto 32 - rcv_pkt_data_mod);  
+							--		udp_rx_pkt_data_tmp(rcv_pkt_data_length - (counter_rx * 32) + 15 downto rcv_pkt_data_length - (counter_rx * 32) - rcv_pkt_data_mod) <= Rx_mac_data; --(31 downto 32 - rcv_pkt_data_mod);  
+							--	else
+							--		udp_rx_pkt_data_tmp(rcv_pkt_data_length - 17 - (counter_rx * 32) downto rcv_pkt_data_length - 16 - (counter_rx * 32) - 32) <= Rx_mac_data;  
+							--	end if;					
+						--	end if;	
+							udp_rx_pkt_data_tmp(rcv_pkt_data_length - (counter_rx * 32) + 15 downto rcv_pkt_data_length - (counter_rx * 32) - rcv_pkt_data_mod) <= Rx_mac_data; 
+							counter_rx <= counter_rx + 1;		
+					 end if;
+					 
+				when x"2" =>
+				
+					rx_udp_state <= x"2";
+					
 					packet_vld <= '0';
-					if(udp_rx_pkt_req = '1') then
+					counter_rx <= 0;
+					if(udp_rx_pkt_req = '1' and udp_valid = '1') then
 						udp_rx_pkt_data <= udp_rx_pkt_data_tmp;		   
 						udp_rx_rdy	    <= '1';
+						udp_rx_rdy_tmp  <= '1';
+						rx_udp_state <= x"3";
 					end if;
-				else
+					
+				when x"3" =>
+				
 					udp_rx_pkt_data <= (others => 'Z');		   
 					udp_rx_rdy	    <= '0';
-				end if;
+					rx_udp_state <= x"0";
+				
+				when others => null;
+			end case;	
 		end if;
 	end process;
 	
-	ethernet_data_process : process(c3_rst0,clk_100mhz)
+--	ila_data0(55 downto 32) <= udp_rx_pkt_data_tmp; 
+--	ila_data0(59 downto 56) <= rx_udp_state;
+	
+								
+	ethernet_data_process : process(c3_rst0,clk_62_5mhz)
 		variable counter : integer := 0;		
 		variable ip_header_length  : std_logic_vector(15 downto 0);
 		variable udp_header_length : std_logic_vector(15 downto 0);
@@ -782,21 +898,21 @@ begin
 		--eth_array(11) <= conv_std_logic_vector(udp_counter, 32);--x"6c6c6f20";
 		
 		if(pkt_data_length = 8) then
-			eth_array(10)(15 downto 0) <= (15 downto 8 => '0') & udp_tx_pkt_data;
+			eth_array(10)(15 downto 0) <= udp_tx_pkt_data & (7 downto 0 => '0');
 		else 
-			eth_array(10)(15 downto 0) <= udp_tx_pkt_data(pkt_data_length - 1 downto pkt_data_length - 16); 
-		end if;
-		
-		counter := 0;
-		for i in 11 to length_ethernet_frame - 2 loop
-			eth_array(i) <= udp_tx_pkt_data(pkt_data_length - (counter * 32) - 17 downto pkt_data_length - (counter * 32) - 48);
-			counter := counter + 1;
-		end loop;
-		
-		if(pkt_byte_mod > 0) then		
+			eth_array(10)(15 downto 0) <= udp_tx_pkt_data(pkt_data_length - 1 downto pkt_data_length - 16);
+
+			counter := 0;
+			for i in 11 to length_ethernet_frame - 2 loop
+				eth_array(i) <= udp_tx_pkt_data(pkt_data_length - (counter * 32) - 17 downto pkt_data_length - (counter * 32) - 48);
+				counter := counter + 1;
+			end loop;
+			
+			if(pkt_byte_mod > 0) then		
 				eth_array(length_ethernet_frame - 1) <=  udp_tx_pkt_data(pkt_data_mod - 1 downto 0) & (32 - pkt_data_mod - 1 downto 0  => '0'); 
-		else
-			eth_array(length_ethernet_frame - 1) <= udp_tx_pkt_data(31 downto 0);
+			else
+				eth_array(length_ethernet_frame - 1) <= udp_tx_pkt_data(31 downto 0);
+			end if;
 		end if;
 
 		-- answer to ARP request from any computer
@@ -833,7 +949,7 @@ begin
 			counter_ethernet_delay <= 0;
 			state_ethernet <= wait_state2; --arp;
 			arp_clear <= '0';
-		elsif( rising_edge(clk_100mhz) ) then
+		elsif( rising_edge(clk_62_5mhz) ) then
 			Tx_mac_sop <= '0';
 			Tx_mac_eop <= '0';
 			Tx_mac_wr <= '0';
@@ -889,11 +1005,11 @@ begin
 					-- respond to ARP request
 					when idle =>  
 						tx_state <= "010";
-						if( Tx_mac_wa = '1' ) then
+						if( Tx_mac_wa = '1') then
 							state_ethernet <= idle;
 							Tx_mac_wr <= '1';
 							
-							if( arp_send = '1' ) then								
+							if( arp_send = '1' and udp_tx_pkt_vld = '0') then								
 								if( counter_ethernet < length_ethernet_arp_frame-1 ) then
 									counter_ethernet <= counter_ethernet + 1;
 								else
@@ -954,9 +1070,9 @@ begin
 	-- Marvell 88E1111S initialization
 	------------------------------------------------------------------------------
 	
-	phy_config : process(clk_100mhz)
+	phy_config : process(clk_62_5mhz)
 	begin
-		if(rising_edge(clk_100mhz)) then
+		if(rising_edge(clk_62_5mhz)) then
 			case config_state is
 				when 0 =>
 					if(config_delay_count < 250000000) then
@@ -1057,56 +1173,33 @@ begin
 --		icon_inst : icon
 --		port map (
 --		 CONTROL0 => CONTROL0,
---		 CONTROL1 => CONTROL1,
---		 CONTROL2 => CONTROL2);	
---		 
+--		 CONTROL1 => CONTROL1
+--		 );	
+		 
 --		ila0_inst : ila0
 --		port map (
 --		 CONTROL => CONTROL0,
---		 CLK => clk_100mhz,
+--		 CLK => clk_125mhz,
 --		 DATA => ila_data0,
 --		 TRIG0 => TRIG0);
---			 
---		ila1_inst : ila1
---		port map (
---		 CONTROL => CONTROL1,
---		 CLK => clk_125mhz,
---		 DATA => ila_data1,
---		 TRIG0 => TRIG1);
---		
+
 --		vio_inst : vio
 --	   port map (
---			CONTROL => CONTROL2,
+--			CONTROL => CONTROL1,
 --			ASYNC_OUT => vio_data);
---	
---		 --ila_data0(31 downto 0)  <= Tx_mac_data;
---		 --ila_data0(63 downto 32) <= Rx_mac_data;
---		 --ila_data0(66 downto 64) <= tx_state;
---		 ila_data0(0) <= Tx_mac_wr;
---		 ila_data0(1) <= Rx_mac_rd;			
---		 ila_data0(2)	<= Tx_mac_sop;
---		 ila_data0(3)	<= Tx_mac_eop;
---		 ila_data0(4)  <= Rx_mac_sop;
---		 ila_data0(5)  <= Rx_mac_eop;
---		 ila_data0(6)  <= Tx_mac_wa;
---		 --ila_data0(9 downto 7) <= tx_state;
---		 
---		 --ila_data0(75 downto 74)  <= Tx_mac_BE;
---		 --ila_data0(297 downto 74) <= udp_rx_pkt_data_tmp;
---		 --ila_data0(298) <= packet_vld;
---		 
---		 trig0(2 downto 0) <= tx_state; --conv_std_logic_vector(config_state,5); --tx_state;
---		 --trig0(0) <= udp_tx_pkt_vld;
---
---		 ila_data1(7  downto 0) <= Txd;
---		 ila_data1(15 downto 8) <= Rxd;
---		 ila_data1(18 downto 16) <= ethernet_speed;	
---		 ila_data1(19)  <= Tx_mac_wa;
---		 ila_data1(20)  <= Rx_mac_ra;
---		 ila_data1(21)  <= Tx_er;
---		 ila_data1(22)  <= Rx_er;
---		 ila_data1(23)  <= gmii_phy_rst_n;
---		 ila_data1(24)  <= reset;
---		 ila_data1(25)  <= Rx_mac_pa;
---		 ila_data1(26)  <= GIGE_RX_CLK;		 
+	
+--		 ila_data0(31 downto 0)  <= Rx_mac_data;
+--		 ila_data0(32) 		    <= udp_rx_rdy_tmp;
+--		 ila_data0(34 downto 33) <= Tx_mac_BE;
+--		 ila_data0(58 downto 35) <= udp_rx_pkt_data_tmp(23 downto 0);--(1151 downto 1152-24);
+--		 ila_data0(60 downto 59) <= rx_udp_state(1 downto 0);
+		
+--		 ila_data0(61) <= udp_rx_pkt_req;
+--		 ila_data0(62) <= Rx_mac_ra;
+--		 ila_data0(63) <= packet_vld;
+		
+--		 trig0(0) <= Rx_mac_ra; 
+		 
+		 --Rx_mac_ra_dbg  <= Rx_mac_ra;
+	  	 
 end arc;

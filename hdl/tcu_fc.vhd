@@ -213,8 +213,8 @@ architecture behave of tcu_fc is
         GIGE_RX_ER                  : in std_logic;
 
         clk_125mhz                  : in std_logic;
---        clk_62_5mhz                  : in std_logic;
-        clk_100mhz                  : in std_logic;
+        clk_62_5mhz                  : in std_logic;
+--        clk_100mhz                  : in std_logic;
         sys_rst_i                   : in std_logic;
         sysclk_locked               : in std_logic;
 
@@ -551,8 +551,8 @@ begin
 
         -- system control
         clk_125mhz => clk_125MHz_IN,
---        clk_62_5mhz => clk_50MHz_IN, -- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        clk_100mhz => clk_50MHz_IN, -- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        clk_62_5mhz => clk_50MHz_IN, -- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+--        clk_100mhz => clk_50MHz_IN, -- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         sys_rst_i => rst_IN,
         sysclk_locked => clk_locked_IN
     );
