@@ -866,14 +866,17 @@ begin
 		
 		
 		-- determine ip header and udp header length attributes		
-		if(pkt_byte_mod > 0)then 
-			ip_header_length  := conv_std_logic_vector((UDP_TX_DATA_BYTE_LENGTH + 28 + (4 - pkt_byte_mod)), 16);
-			udp_header_length := conv_std_logic_vector((UDP_TX_DATA_BYTE_LENGTH + 8 +  (4 - pkt_byte_mod)), 16);
-		else
-			ip_header_length  := conv_std_logic_vector((UDP_TX_DATA_BYTE_LENGTH + 28), 16);
-			udp_header_length := conv_std_logic_vector((UDP_TX_DATA_BYTE_LENGTH + 8), 16);
-		end if;
-		
+--		if(pkt_byte_mod > 0)then 
+--			ip_header_length  := conv_std_logic_vector((UDP_TX_DATA_BYTE_LENGTH + 28 + (4 - pkt_byte_mod)), 16);
+--			udp_header_length := conv_std_logic_vector((UDP_TX_DATA_BYTE_LENGTH + 8 +  (4 - pkt_byte_mod)), 16);
+--		else
+--			ip_header_length  := conv_std_logic_vector((UDP_TX_DATA_BYTE_LENGTH + 28), 16);
+--			udp_header_length := conv_std_logic_vector((UDP_TX_DATA_BYTE_LENGTH + 8), 16);
+--		end if;
+		ip_header_length := x"002b"; -- force IP length to 0x002b = 43...
+        udp_header_length := x"0017"; -- force UDP length field to 0x0017 = 23 which is what passive wants
+        
+        
 		-- UDP packet
 		eth_array(0) <= dst_mac_addr_r(47 downto 16);
 		eth_array(1) <= dst_mac_addr_r(15 downto 0) & own_mac_addr(47 downto 32);

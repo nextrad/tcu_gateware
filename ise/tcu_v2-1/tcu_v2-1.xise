@@ -178,24 +178,6 @@
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="7"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="7"/>
     </file>
-    <file xil_pn:name="chipscope_icon.xco" xil_pn:type="FILE_COREGEN">
-      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="0"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
-    </file>
-    <file xil_pn:name="chipscope_vio.xco" xil_pn:type="FILE_COREGEN">
-      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="0"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
-    </file>
-    <file xil_pn:name="chipscope_ila.xco" xil_pn:type="FILE_COREGEN">
-      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="0"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
-    </file>
-    <file xil_pn:name="UDP_1GbE_tb.vhd" xil_pn:type="FILE_VHDL">
-      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="0"/>
-      <association xil_pn:name="PostMapSimulation" xil_pn:seqID="150"/>
-      <association xil_pn:name="PostRouteSimulation" xil_pn:seqID="150"/>
-      <association xil_pn:name="PostTranslateSimulation" xil_pn:seqID="150"/>
-    </file>
     <file xil_pn:name="../../hdl/cores/clk_wiz_v3_6.xise" xil_pn:type="FILE_COREGENISE">
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
@@ -209,15 +191,6 @@
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
     <file xil_pn:name="../../../../Dropbox/2017/nextrad/source/NeXtRAD-TCU-master-Dominic/NeXtRAD-TCU-Controller/pcores/rtl/spartan6/ila0.xise" xil_pn:type="FILE_COREGENISE">
-      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
-    </file>
-    <file xil_pn:name="chipscope_icon.xise" xil_pn:type="FILE_COREGENISE">
-      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
-    </file>
-    <file xil_pn:name="chipscope_vio.xise" xil_pn:type="FILE_COREGENISE">
-      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
-    </file>
-    <file xil_pn:name="chipscope_ila.xise" xil_pn:type="FILE_COREGENISE">
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
   </files>
