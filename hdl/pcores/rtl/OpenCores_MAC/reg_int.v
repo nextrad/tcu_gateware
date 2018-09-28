@@ -97,7 +97,7 @@ input                   UpdateMIIRX_DATAReg     // Updates MII RX_DATA register 
 //  RegCPUData U_0_032(CPU_rd_dout_h            ,7'd032,16'h0000,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
     RegCPUData U_0_033(Line_loop_en             ,7'd033,16'h0000,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
 	 // change from 4 to 2 because default 100mbit
-    RegCPUData U_0_034(Speed                    ,7'd034,16'h0002,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
+    RegCPUData U_0_034(Speed                    ,7'd034,16'h0004,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
 
 always @ (posedge Clk_reg or posedge Reset)
     if (Reset)

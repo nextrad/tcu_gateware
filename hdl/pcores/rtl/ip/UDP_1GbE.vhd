@@ -202,6 +202,8 @@ architecture arc of UDP_1GbE is
     signal dbg_i_udp_tx_pkt_vld     : std_logic;
     signal dbg_i_sys_rst_i          : std_logic;
 
+    signal dbg_i                    : std_logic_vector(241 downto 0);
+
     signal dbg_o_Busy               : std_logic;
     signal dbg_o_LinkFail           : std_logic;
     signal dbg_o_Nvalid             : std_logic;
@@ -209,6 +211,40 @@ architecture arc of UDP_1GbE is
     signal dbg_o_WCtrlDataStart     : std_logic;
     signal dbg_o_RStatStart         : std_logic;
     signal dbg_o_UpdateMIIRX_DATAReg: std_logic;
+
+    signal dbg_o                    : std_logic_vector(21 downto 0);
+
+    signal dbg_ila_mii              : std_logic_vector(62 downto 0);
+
+    signal control_0                : std_logic_vector(35 DOWNTO 0);
+    signal control_1                : std_logic_vector(35 DOWNTO 0);
+    signal control_2                : std_logic_vector(35 DOWNTO 0);
+
+    component chipscope_icon
+    PORT (
+        CONTROL0 : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
+        CONTROL1 : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
+        CONTROL2 : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0));
+    end component;
+
+    component chipscope_vio_udp
+    PORT (
+        CONTROL : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
+        ASYNC_OUT : IN STD_LOGIC_VECTOR(241 DOWNTO 0));
+    end component;
+
+    component chipscope_vio_mii
+    PORT (
+        CONTROL : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
+        ASYNC_IN : IN STD_LOGIC_VECTOR(21 DOWNTO 0));
+    end component;
+
+    component chipscope_ila_mii
+    PORT (
+        CONTROL : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
+        CLK : IN STD_LOGIC;
+        TRIG0 : IN STD_LOGIC_VECTOR(62 DOWNTO 0));
+    end component;
     ---------------------------------------------------------------------------
     --                        END OF DUBUGGING SECTION
     ---------------------------------------------------------------------------
@@ -220,6 +256,7 @@ architecture arc of UDP_1GbE is
     signal s_udp_src_port       : std_logic_vector(15 downto 0);
     signal s_udp_dst_port       : std_logic_vector(15 downto 0);
     signal s_udp_tx_pkt_data_frq: std_logic_vector(47 downto 0);
+    signal s_udp_tx_pkt_data    : std_logic_vector(127 downto 0);
     signal s_udp_tx_pkt_vld     : std_logic;
     signal s_sys_rst_i          : std_logic;
 
@@ -376,25 +413,25 @@ architecture arc of UDP_1GbE is
 begin
 
 
-    -- s_own_ip_addr       <= own_ip_addr;
-    -- s_own_mac_addr      <= own_mac_addr;
-    -- s_dst_ip_addr       <= dst_ip_addr;
-    -- s_dst_mac_addr      <= dst_mac_addr;
-    -- s_udp_src_port      <= udp_src_port;
-    -- s_udp_dst_port      <= udp_dst_port;
-    -- s_udp_tx_pkt_data   <= udp_tx_pkt_data;
-    -- s_udp_tx_pkt_vld    <= udp_tx_pkt_vld;
-    -- s_sys_rst_i         <= sys_rst_i;
+     s_own_ip_addr       <= own_ip_addr;
+     s_own_mac_addr      <= own_mac_addr;
+     s_dst_ip_addr       <= dst_ip_addr;
+     s_dst_mac_addr      <= dst_mac_addr;
+     s_udp_src_port      <= udp_src_port;
+     s_udp_dst_port      <= udp_dst_port;
+     s_udp_tx_pkt_data   <= udp_tx_pkt_data;
+     s_udp_tx_pkt_vld    <= udp_tx_pkt_vld;
+     s_sys_rst_i         <= sys_rst_i;
 
-    s_own_ip_addr           <= dbg_i_own_ip_addr;
-    s_own_mac_addr          <= dbg_i_own_mac_addr;
-    s_dst_ip_addr           <= dbg_i_dst_ip_addr;
-    s_dst_mac_addr          <= dbg_i_dst_mac_addr;
-    s_udp_src_port          <= dbg_i_udp_src_port;
-    s_udp_dst_port          <= dbg_i_udp_dst_port;
-    s_udp_tx_pkt_data_frq   <= dbg_i_udp_tx_pkt_data_frq;
-    s_udp_tx_pkt_vld        <= dbg_i_udp_tx_pkt_vld;
-    s_sys_rst_i             <= dbg_i_sys_rst_i;
+--    s_own_ip_addr           <= dbg_i_own_ip_addr;
+--    s_own_mac_addr          <= dbg_i_own_mac_addr;
+--    s_dst_ip_addr           <= dbg_i_dst_ip_addr;
+--    s_dst_mac_addr          <= dbg_i_dst_mac_addr;
+--    s_udp_src_port          <= dbg_i_udp_src_port;
+--    s_udp_dst_port          <= dbg_i_udp_dst_port;
+--    s_udp_tx_pkt_data_frq   <= dbg_i_udp_tx_pkt_data_frq;
+--    s_udp_tx_pkt_vld        <= dbg_i_udp_tx_pkt_vld;
+--    s_sys_rst_i             <= dbg_i_sys_rst_i;
 
 
     reset <= not sysclk_locked or dbg_i_sys_rst_i;
@@ -804,24 +841,24 @@ begin
         eth_array(10)(31 downto 16) <= x"0000";
                             -- data
         ---- eth_array(11) <= conv_std_logic_vector(udp_counter, 32);--x"6c6c6f20";
-
-        -- if(pkt_data_length = 8) then
-        --     eth_array(10)(15 downto 0) <= udp_tx_pkt_data & (7 downto 0 => '0');
-        -- else
-        --     eth_array(10)(15 downto 0) <= udp_tx_pkt_data(pkt_data_length - 1 downto pkt_data_length - 16);
-        --
-        --     counter := 0;
-        --     for i in 11 to length_ethernet_frame - 2 loop
-        --         eth_array(i) <= udp_tx_pkt_data(pkt_data_length - (counter * 32) - 17 downto pkt_data_length - (counter * 32) - 48);
-        --         counter := counter + 1;
-        --     end loop;
-        --
-        --     if(pkt_byte_mod > 0) then
-        --         eth_array(length_ethernet_frame - 1) <=  udp_tx_pkt_data(pkt_data_mod - 1 downto 0) & (32 - pkt_data_mod - 1 downto 0  => '0');
-        --     else
-        --         eth_array(length_ethernet_frame - 1) <= udp_tx_pkt_data(31 downto 0);
-        --     end if;
-        -- end if;
+--
+--         if(pkt_data_length = 8) then
+--             eth_array(10)(15 downto 0) <= s_udp_tx_pkt_data & (7 downto 0 => '0');
+--         else
+--             eth_array(10)(15 downto 0) <= s_udp_tx_pkt_data(pkt_data_length - 1 downto pkt_data_length - 16);
+--        
+--             counter := 0;
+--             for i in 11 to length_ethernet_frame - 2 loop
+--                 eth_array(i) <= s_udp_tx_pkt_data(pkt_data_length - (counter * 32) - 17 downto pkt_data_length - (counter * 32) - 48);
+--                 counter := counter + 1;
+--             end loop;
+--        
+--             if(pkt_byte_mod > 0) then
+--                 eth_array(length_ethernet_frame - 1) <=  s_udp_tx_pkt_data(pkt_data_mod - 1 downto 0) & (32 - pkt_data_mod - 1 downto 0  => '0');
+--             else
+--                 eth_array(length_ethernet_frame - 1) <= s_udp_tx_pkt_data(31 downto 0);
+--             end if;
+--         end if;
 
         -- allowing chipscope to inject frequency data into payload (see spreadsheet)
         eth_array(10)(15 downto 0)  <= udp_tx_pkt_data(127 downto 112);
@@ -925,7 +962,7 @@ begin
                             state_ethernet <= idle;
                             Tx_mac_wr <= '1';
 
-                            if( arp_send = '1' and udp_tx_pkt_vld = '0') then
+                            if( arp_send = '1' and s_udp_tx_pkt_vld = '0') then
                                 if( counter_ethernet < length_ethernet_arp_frame-1 ) then
                                     counter_ethernet <= counter_ethernet + 1;
                                 else
@@ -970,7 +1007,7 @@ begin
                         counter_ethernet           <= 0;
                         counter_ethernet_delay <= 0;
 
-                        if(udp_tx_pkt_vld = '1' or arp_send = '1') then
+                        if(s_udp_tx_pkt_vld = '1' or arp_send = '1') then
                             state_ethernet <= idle;
                         else
                             state_ethernet <= wait_state2;
@@ -999,6 +1036,7 @@ begin
                 WCtrlData <= '0';
                 RStat     <= '0';
                 ScanStat  <= '0';
+                config_checked <= '0';
             else
                 case config_state is
                     when 0 =>
@@ -1096,7 +1134,64 @@ begin
     ---------------------------------------------------------------------------
     --                            DUBUGGING SECTION
     ---------------------------------------------------------------------------
+    my_icon : chipscope_icon
+    port map (
+        CONTROL0 => control_0,
+        CONTROL1 => control_1,
+        CONTROL2 => control_2);
 
+    my_vio_udp : chipscope_vio_udp
+    port map (
+        CONTROL => control_0,
+        ASYNC_OUT => dbg_i);
+
+    my_vio_mii : chipscope_vio_mii
+    port map (
+        CONTROL => control_1,
+        ASYNC_IN => dbg_o);
+
+    my_ila_mii : chipscope_ila_mii
+    port map (
+        CONTROL => control_2,
+        CLK => clk_62_5mhz,
+        TRIG0 => dbg_ila_mii);
+
+--    dbg_i_own_ip_addr           <= dbg_i(241 downto 210); --(31 downto 0);
+--    dbg_i_own_mac_addr          <= dbg_i(209 downto 162); --(47 downto 0);
+--    dbg_i_dst_ip_addr           <= dbg_i(161 downto 130);--(31 downto 0);
+--    dbg_i_dst_mac_addr          <= dbg_i(129 downto 82); --(47 downto 0);
+--    dbg_i_udp_src_port          <= dbg_i(81 downto 66); --(15 downto 0);
+--    dbg_i_udp_dst_port          <= dbg_i(65 downto 50); --(15 downto 0);
+--    dbg_i_udp_tx_pkt_data_frq   <= dbg_i(49 downto 2); --(47 downto 0);
+--    dbg_i_udp_tx_pkt_vld        <= dbg_i(1); --;
+--    dbg_i_sys_rst_i             <= dbg_i(0); --;
+
+    dbg_o_Busy                  <= Busy;
+    dbg_o_LinkFail              <= LinkFail;
+    dbg_o_Nvalid                <= Nvalid;
+    dbg_o_WCtrlDataStart        <= WCtrlDataStart;
+    dbg_o_RStatStart            <= RStatStart;
+    dbg_o_UpdateMIIRX_DATAReg   <= UpdateMIIRX_DATAReg;
+    dbg_o_Prsd                  <= Prsd;
+
+--    dbg_o(21)                   <= dbg_o_Busy;
+--    dbg_o(20)                   <= dbg_o_LinkFail;
+--    dbg_o(19)                   <= dbg_o_Nvalid;
+--    dbg_o(18)                   <= dbg_o_WCtrlDataStart;
+--    dbg_o(17)                   <= dbg_o_RStatStart;
+--    dbg_o(16)                   <= dbg_o_UpdateMIIRX_DATAReg;
+--    dbg_o(15 downto 0)          <= dbg_o_Prsd;
+--
+--
+--    dbg_ila_mii(62 downto 58)   <= conv_std_logic_vector(config_state, 5);
+--    dbg_ila_mii(57 downto 26)   <= conv_std_logic_vector(config_delay_count, 32);
+--    dbg_ila_mii(25)             <= config_checked;
+--    dbg_ila_mii(24 downto 9)    <= CtrlData;
+--    dbg_ila_mii(8 downto 4)     <= Rgad;
+--    dbg_ila_mii(3)              <= WCtrlData;
+--    dbg_ila_mii(2)              <= ScanStat;
+--    dbg_ila_mii(1)              <= NoPre;
+--    dbg_ila_mii(0)              <= RStat;
     ---------------------------------------------------------------------------
     --                        END OF DUBUGGING SECTION
     ---------------------------------------------------------------------------

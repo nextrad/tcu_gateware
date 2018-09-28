@@ -110,7 +110,7 @@ architecture behave of tcu_fc is
     signal digitize_counter         : unsigned(31 downto 0)         := (others => '0');
     signal block_counter            : unsigned(31 downto 0)         := (others => '0');
 
-    constant UDP_DELAY              : natural                       := 10; -- seems to output ~2 udp packets per pulse
+    constant UDP_DELAY              : natural                       := 500; -- seems to output ~2 udp packets per pulse
     signal udp_counter              : integer range 0 to UDP_DELAY  := 0;
 
 
@@ -520,8 +520,8 @@ begin
 --        dst_ip_addr     => x"c0a86b1d",    -- 192.168.107.29
         dst_ip_addr       => x"c0a83664",    -- 192.168.54.100
 --        dst_mac_addr    => x"0e0e0e0e0e0c", -- MAC REX
-        dst_mac_addr    => x"0014a372173f", -- MAC PASSIVE
---        dst_mac_addr    => x"60eb692a0d27", -- MAC Laptop
+--        dst_mac_addr    => x"0014a372173f", -- MAC PASSIVE
+        dst_mac_addr    => x"60eb692a0d27", -- MAC Laptop
 
         udp_src_port    => x"1f40", --8000
 --        udp_dst_port    => x"1f43", --8003
