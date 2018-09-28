@@ -14,3 +14,5 @@ fetch_bin:
 send_bof:
 	chmod +x $(BOF_FILE)
 	cp $(BOF_FILE) /opt/rhinofs/root
+
+all:	fetch_bin tcu send_bof
