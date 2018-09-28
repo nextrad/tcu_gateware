@@ -5,9 +5,9 @@
 -- Project    : RHINO SDR Processing Blocks
 ----------------------------------------------------------------------
 --
---    Author     : Lekhobola Tsoeunyane
+-- Author     : Lekhobola Tsoeunyane
 -- Company    : University Of Cape Town
--- Email          : lekhobola@gmail.com
+-- Email      : lekhobola@gmail.com
 ----------------------------------------------------------------------
 -- Features
 -- 1) Marvell 88E1111S initialization
@@ -67,45 +67,45 @@ entity UDP_1GbE is
     );
   port(
         -- user logic interface
-        own_ip_addr           : in std_logic_vector (31 downto 0);
-        own_mac_addr      : in std_logic_vector (47 downto 0);
-        dst_ip_addr       : in std_logic_vector (31 downto 0);
-        dst_mac_addr      : in std_logic_vector(47 downto 0);
+        own_ip_addr     : in    std_logic_vector (31 downto 0);
+        own_mac_addr    : in    std_logic_vector (47 downto 0);
+        dst_ip_addr     : in    std_logic_vector (31 downto 0);
+        dst_mac_addr    : in    std_logic_vector(47 downto 0);
 
-        udp_src_port          : in std_logic_vector (15 downto 0);
-        udp_dst_port      : in std_logic_vector (15 downto 0);
+        udp_src_port    : in    std_logic_vector (15 downto 0);
+        udp_dst_port    : in    std_logic_vector (15 downto 0);
 
-        udp_tx_pkt_data    : in std_logic_vector (8 * UDP_TX_DATA_BYTE_LENGTH - 1 downto 0);
-        udp_tx_pkt_vld    : in std_logic;
-        udp_tx_rdy           : out std_logic;
+        udp_tx_pkt_data : in    std_logic_vector (8 * UDP_TX_DATA_BYTE_LENGTH - 1 downto 0);
+        udp_tx_pkt_vld  : in    std_logic;
+        udp_tx_rdy      : out   std_logic;
 
-        udp_rx_pkt_data   : out std_logic_vector(8 * UDP_RX_DATA_BYTE_LENGTH - 1 downto 0);
-        udp_rx_pkt_req    : in  std_logic;
-        udp_rx_rdy           : out std_logic;
+        udp_rx_pkt_data : out   std_logic_vector(8 * UDP_RX_DATA_BYTE_LENGTH - 1 downto 0);
+        udp_rx_pkt_req  : in    std_logic;
+        udp_rx_rdy      : out   std_logic;
 
-        mac_init_done       : out std_logic;
+        mac_init_done   : out   std_logic;
 
         -- MAC interface
-        GIGE_COL            : in std_logic;
-        GIGE_CRS            : in std_logic;
-        GIGE_MDC            : out std_logic;
+        GIGE_COL        : in    std_logic;
+        GIGE_CRS        : in    std_logic;
+        GIGE_MDC        : out   std_logic;
         GIGE_MDIO       : inout std_logic;
-        GIGE_TX_CLK       : in std_logic;
-        GIGE_nRESET       : out std_logic;
-        GIGE_RXD            : in std_logic_vector( 7 downto 0 );
-        GIGE_RX_CLK        : in std_logic;
-        GIGE_RX_DV        : in std_logic;
-        GIGE_RX_ER        : in std_logic;
-        GIGE_TXD            : out std_logic_vector( 7 downto 0 );
-        GIGE_GTX_CLK     : out std_logic;
-        GIGE_TX_EN        : out std_logic;
-        GIGE_TX_ER        : out std_logic;
+        GIGE_TX_CLK     : in    std_logic;
+        GIGE_nRESET     : out   std_logic;
+        GIGE_RXD        : in    std_logic_vector( 7 downto 0 );
+        GIGE_RX_CLK     : in    std_logic;
+        GIGE_RX_DV      : in    std_logic;
+        GIGE_RX_ER      : in    std_logic;
+        GIGE_TXD        : out   std_logic_vector( 7 downto 0 );
+        GIGE_GTX_CLK    : out   std_logic;
+        GIGE_TX_EN      : out   std_logic;
+        GIGE_TX_ER      : out   std_logic;
 
         -- system control
-        clk_125mhz     : in  std_logic;
-        clk_62_5mhz     : in  std_logic;
-        sys_rst_i      : in  std_logic;
-        sysclk_locked  : in  std_logic
+        clk_125mhz      : in    std_logic;
+        clk_62_5mhz     : in    std_logic;
+        sys_rst_i       : in    std_logic;
+        sysclk_locked   : in    std_logic
 
         -- debug
         --Rx_mac_ra_dbg  : out std_logic
@@ -117,117 +117,84 @@ architecture arc of UDP_1GbE is
     component MAC_top
     port(
         --//system signals
-        Reset        : in std_logic;
-        Clk_125M    : in std_logic;
-        Clk_user    : in std_logic;
-        Clk_reg    : in std_logic;
-        Speed        : out std_logic_vector( 2 downto 0);
+        Reset               : in  std_logic;
+        Clk_125M            : in  std_logic;
+        Clk_user            : in  std_logic;
+        Clk_reg             : in  std_logic;
+        Speed               : out std_logic_vector( 2 downto 0);
         --//user interface
-        Rx_mac_ra     : out std_logic;
-        Rx_mac_rd    : in std_logic;
-        Rx_mac_data    : out std_logic_vector( 31 downto 0 );
-        Rx_mac_BE    : out std_logic_vector( 1 downto 0 );
-        Rx_mac_pa    : out std_logic;
-        Rx_mac_sop    : out std_logic;
-        Rx_mac_eop    : out std_logic;
+        Rx_mac_ra           : out std_logic;
+        Rx_mac_rd           : in  std_logic;
+        Rx_mac_data         : out std_logic_vector( 31 downto 0 );
+        Rx_mac_BE           : out std_logic_vector( 1 downto 0 );
+        Rx_mac_pa           : out std_logic;
+        Rx_mac_sop          : out std_logic;
+        Rx_mac_eop          : out std_logic;
         --//user interface
-        Tx_mac_wa    : out std_logic;
-        Tx_mac_wr    : in std_logic;
-        Tx_mac_data    : in std_logic_vector( 31 downto 0 );
-        Tx_mac_BE    : in std_logic_vector( 1 downto 0 );--//big endian
-        Tx_mac_sop    : in std_logic;
-        Tx_mac_eop    : in std_logic;
+        Tx_mac_wa           : out std_logic;
+        Tx_mac_wr           : in  std_logic;
+        Tx_mac_data         : in  std_logic_vector( 31 downto 0 );
+        Tx_mac_BE           : in  std_logic_vector( 1 downto 0 );--//big endian
+        Tx_mac_sop          : in  std_logic;
+        Tx_mac_eop          : in  std_logic;
         --//pkg_lgth fifo
-        Pkg_lgth_fifo_rd        : in std_logic;
-        Pkg_lgth_fifo_ra        : out std_logic;
-        Pkg_lgth_fifo_data    : out std_logic_vector( 15 downto 0 );
+        Pkg_lgth_fifo_rd    : in  std_logic;
+        Pkg_lgth_fifo_ra    : out std_logic;
+        Pkg_lgth_fifo_data  : out std_logic_vector( 15 downto 0 );
         --//Phy interface
-        --//Phy interface
-        Gtx_clk    : out std_logic;--//used only in GMII mode
-        Rx_clk    : in std_logic;
-        Tx_clk    : in std_logic; --//used only in MII mode
-        Tx_er        : out std_logic;
-        Tx_en        : out std_logic;
-        Txd        : out std_logic_vector( 7 downto 0 );
-        Rx_er        : in std_logic;
-        Rx_dv        : in std_logic;
-        Rxd        : in std_logic_vector( 7 downto 0 );
-        Crs        : in std_logic;
-        Col        : in std_logic;
+        Gtx_clk             : out std_logic;--//used only in GMII mode
+        Rx_clk              : in  std_logic;
+        Tx_clk              : in  std_logic; --//used only in MII mode
+        Tx_er               : out std_logic;
+        Tx_en               : out std_logic;
+        Txd                 : out std_logic_vector( 7 downto 0 );
+        Rx_er               : in  std_logic;
+        Rx_dv               : in  std_logic;
+        Rxd                 : in  std_logic_vector( 7 downto 0 );
+        Crs                 : in  std_logic;
+        Col                 : in  std_logic;
         --//host interface
-        CSB        : in std_logic;
-        WRB        : in std_logic;
-        CD_in        : in std_logic_vector( 15 downto 0 );
-        CD_out    : out std_logic_vector( 15 downto 0 );
-        CA            : in std_logic_vector( 7 downto 0 );
+        CSB                 : in  std_logic;
+        WRB                 : in  std_logic;
+        CD_in               : in  std_logic_vector( 15 downto 0 );
+        CD_out              : out std_logic_vector( 15 downto 0 );
+        CA                  : in  std_logic_vector( 7 downto 0 );
         -- mdx
-        Mdo    : out std_logic; --// MII Management Data Output
-        MdoEn    : out std_logic; --// MII Management Data Output Enable
-        Mdi    : in std_logic;
-        Mdc    : out std_logic; --// MII Management Data Clock
-
+        Mdo                 : out std_logic; --// MII Management Data Output
+        MdoEn               : out std_logic; --// MII Management Data Output Enable
+        Mdi                 : in  std_logic;
+        Mdc                 : out std_logic; --// MII Management Data Clock
         -- MII to CPU
-        Divider                     : in  std_logic_vector(7 downto 0);
-        CtrlData                 : in  std_logic_vector(15 downto 0);
-        Rgad                         : in  std_logic_vector(4 downto 0);
-        Fiad                         : in  std_logic_vector(4 downto 0);
-        NoPre                     : in  std_logic;
-        WCtrlData                 : in  std_logic;
-        RStat                     : in  std_logic;
-        ScanStat                 : in  std_logic;
-        Busy                         : out  std_logic;
-        LinkFail                 : out  std_logic;
-        Nvalid                     : out  std_logic;
-        Prsd                         : out  std_logic_vector(15 downto 0);
-        WCtrlDataStart         : out  std_logic;
-        RStatStart                : out  std_logic;
-        UpdateMIIRX_DATAReg  : out  std_logic
+        Divider             : in   std_logic_vector(7 downto 0);
+        CtrlData            : in   std_logic_vector(15 downto 0);
+        Rgad                : in   std_logic_vector(4 downto 0);
+        Fiad                : in   std_logic_vector(4 downto 0);
+        NoPre               : in   std_logic;
+        WCtrlData           : in   std_logic;
+        RStat               : in   std_logic;
+        ScanStat            : in   std_logic;
+        Busy                : out  std_logic;
+        LinkFail            : out  std_logic;
+        Nvalid              : out  std_logic;
+        Prsd                : out  std_logic_vector(15 downto 0);
+        WCtrlDataStart      : out  std_logic;
+        RStatStart          : out  std_logic;
+        UpdateMIIRX_DATAReg : out  std_logic
     );
     end component;
 
     component calc_ipv4_checksum
     port (
-        clk : in  STD_LOGIC;
-      data : in  STD_LOGIC_VECTOR (159 downto 0);
-        ready : out STD_LOGIC;
-      checksum : out  STD_LOGIC_VECTOR (15 downto 0);
-      reset : in  STD_LOGIC);
+        clk      : in  STD_LOGIC;
+        data     : in  STD_LOGIC_VECTOR (159 downto 0);
+        ready    : out STD_LOGIC;
+        checksum : out STD_LOGIC_VECTOR (15 downto 0);
+        reset    : in  STD_LOGIC);
     end component;
 
     ---------------------------------------------------------------------------
     --                            DUBUGGING SECTION
     ---------------------------------------------------------------------------
-    component icon
-    PORT (
-     CONTROL0 : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
-     CONTROL1 : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0));
-
-    end component;
-
-
-    component ila0
-    PORT (
-     CONTROL : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
-     CLK : IN STD_LOGIC;
-     DATA : IN STD_LOGIC_VECTOR(63 DOWNTO 0);
-     TRIG0 : IN STD_LOGIC_VECTOR(23 downto 0));
-
-    end component;
-
-
-   component vio
-   PORT (
-     CONTROL : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
-     ASYNC_OUT : OUT STD_LOGIC_VECTOR(0 DOWNTO 0));
-    end component;
-
-    signal control0 : std_logic_vector(35 downto 0);
-    signal control1 : std_logic_vector(35 downto 0);
-    signal ila_data0 : std_logic_vector(63 downto 0);
-    signal ila_data1 : std_logic_vector(63 downto 0);
-    signal trig0    : STD_LOGIC_VECTOR(23 downto 0);
-    signal trig1    : std_logic_vector(7 downto 0);
-    signal vio_data      : std_logic_vector(0 downto 0);
 
     ---------------------------------------------------------------------------
     --                        END OF DUBUGGING SECTION
@@ -236,60 +203,40 @@ architecture arc of UDP_1GbE is
     attribute S: string;
     attribute keep : string;
 
-    signal  c3_rst0            : std_logic;
-    signal c3_sys_clk_ibufg     : std_logic;
-    --signal clk_125mhz : std_logic;
-    --signal clk_62_5mhz : std_logic;
-    --signal clk_25mhz : std_logic;
-    --signal clk_6_25mhz : std_logic;
-    --signal clk_3_125mhz : std_logic;
-    signal reset : std_logic;
+    signal c3_rst0 : std_logic;
+    signal reset   : std_logic;
 
-    signal Rx_mac_ra     : std_logic;
-    attribute S of Rx_mac_ra : signal is "TRUE";
-    signal Rx_mac_rd    : std_logic;
-    attribute S of Rx_mac_rd : signal is "TRUE";
-    signal Rx_mac_data: std_logic_vector( 31 downto 0 );
-    attribute S of Rx_mac_data : signal is "TRUE";
-   signal Rx_mac_BE    : std_logic_vector( 1 downto 0 );
-    attribute S of Rx_mac_BE : signal is "TRUE";
-    signal Rx_mac_pa    : std_logic;
-    attribute S of Rx_mac_pa : signal is "TRUE";
-    signal Rx_mac_sop    : std_logic;
-    attribute S of Rx_mac_sop : signal is "TRUE";
-    signal Rx_mac_eop    : std_logic;
-    attribute S of Rx_mac_eop : signal is "TRUE";
+    signal Rx_mac_ra   : std_logic;
+    signal Rx_mac_rd   : std_logic;
+    signal Rx_mac_data : std_logic_vector( 31 downto 0 );
+    signal Rx_mac_BE   : std_logic_vector( 1 downto 0 );
+    signal Rx_mac_pa   : std_logic;
+    signal Rx_mac_sop  : std_logic;
+    signal Rx_mac_eop  : std_logic;
 
     --//user interface
-    signal Tx_mac_wa    : std_logic;
-    attribute S of Tx_mac_wa : signal is "TRUE";
-    signal Tx_mac_wr    : std_logic;
-    attribute S of Tx_mac_wr : signal is "TRUE";
-    signal Tx_mac_data: std_logic_vector( 31 downto 0 );
-    attribute S of Tx_mac_data : signal is "TRUE";
-    signal Tx_mac_BE    : std_logic_vector( 1 downto 0 );--//big endian
-    attribute S of Tx_mac_BE : signal is "TRUE";
-    signal Tx_mac_sop    : std_logic;
-    attribute S of Tx_mac_sop : signal is "TRUE";
-    signal Tx_mac_eop    : std_logic;
-    attribute S of Tx_mac_eop : signal is "TRUE";
+    signal Tx_mac_wa   : std_logic;
+    signal Tx_mac_wr   : std_logic;
+    signal Tx_mac_data : std_logic_vector( 31 downto 0 );
+    signal Tx_mac_BE   : std_logic_vector( 1 downto 0 );--//big endian
+    signal Tx_mac_sop  : std_logic;
+    signal Tx_mac_eop  : std_logic;
     --//pkg_lgth fifo
-    signal Pkg_lgth_fifo_rd        : std_logic;
-    signal Pkg_lgth_fifo_ra        : std_logic;
-    signal Pkg_lgth_fifo_data    : std_logic_vector( 15 downto 0 );
+    signal Pkg_lgth_fifo_rd   : std_logic;
+    signal Pkg_lgth_fifo_ra   : std_logic;
+    signal Pkg_lgth_fifo_data : std_logic_vector( 15 downto 0 );
 
-    signal CSB        : std_logic;
-    signal WRB        : std_logic;
-    signal CD_in    : std_logic_vector( 15 downto 0 );
-    signal CD_out    : std_logic_vector( 15 downto 0 );
-    signal CA        : std_logic_vector( 7 downto 0 );
+    signal CSB    : std_logic;
+    signal WRB    : std_logic;
+    signal CD_in  : std_logic_vector( 15 downto 0 );
+    signal CD_out : std_logic_vector( 15 downto 0 );
+    signal CA     : std_logic_vector( 7 downto 0 );
     --//mdx
-    signal Mdo        : std_logic; --// MII Management Data Output
-    signal MdoEn    : std_logic; --// MII Management Data Output Enable
-    signal Mdi        : std_logic;
+    signal Mdo   : std_logic; --// MII Management Data Output
+    signal MdoEn : std_logic; --// MII Management Data Output Enable
+    signal Mdi   : std_logic;
 
     signal ethernet_speed : std_logic_vector( 2 downto 0);
-    attribute S of ethernet_speed : signal is "TRUE";
 
     signal GIGE_GTX_CLK_buf    : std_logic;
 
@@ -317,7 +264,6 @@ architecture arc of UDP_1GbE is
     signal udp_rx_pkt_data_tmp : std_logic_vector(rcv_pkt_data_length - 1 downto 0) := (others => '0');
     signal udp_rx_pkt_data_r   : std_logic_vector(31 downto 0) := (others => '0');
     signal udp_rx_rdy_tmp      : std_logic := '0';
-    attribute S of udp_rx_pkt_data_tmp : signal is "TRUE";
 
     type array_network is array (0 to length_ethernet_frame-1) of std_logic_vector(31 downto 0);
     type array_network_arp is array (0 to length_ethernet_arp_frame-1) of std_logic_vector(31 downto 0);
@@ -328,61 +274,39 @@ architecture arc of UDP_1GbE is
     signal counter_ethernet : integer range 0 to length_ethernet_frame-1;
 
 
-    signal Rx_clk     : std_logic;
-    attribute S of Rx_clk : signal is "TRUE";
-    signal Tx_clk     : std_logic;
-    attribute S of Tx_clk : signal is "TRUE";
-    signal Tx_er    : std_logic;
-    attribute S of Tx_er : signal is "TRUE";
-    signal Tx_en    : std_logic;
-    attribute S of Tx_en : signal is "TRUE";
-    signal Txd        : std_logic_vector( 7 downto 0 );
-    attribute S of Txd : signal is "TRUE";
-    signal Rx_er    : std_logic;
-    attribute S of Rx_er : signal is "TRUE";
-    signal Rx_dv    : std_logic;
-    attribute S of Rx_dv : signal is "TRUE";
-    signal Rxd        : std_logic_vector( 7 downto 0 );
-    attribute S of Rxd : signal is "TRUE";
+    signal Rx_clk : std_logic;
+    signal Tx_clk : std_logic;
+    signal Tx_er  : std_logic;
+    signal Tx_en  : std_logic;
+    signal Txd    : std_logic_vector( 7 downto 0 );
+    signal Rx_er  : std_logic;
+    signal Rx_dv  : std_logic;
+    signal Rxd    : std_logic_vector( 7 downto 0 );
 
-    signal MDC_sig        : std_logic;
+    signal MDC_sig : std_logic;
 
-    signal calc_checksum        : std_logic_vector( 15 downto 0);
-    attribute S of calc_checksum : signal is "TRUE";
+    signal calc_checksum : std_logic_vector( 15 downto 0);
 
     signal LED_sig : std_logic;
-    attribute S of LED_sig : signal is "TRUE";
 
     signal counter_ethernet_delay : integer := 0;
 
     signal counter_ethernet_rec : integer range 0 to 15;
     signal packet_valid : std_logic;
-    attribute S of packet_valid : signal is "TRUE";
 
-    signal LED_data                 : std_logic_vector( 7 downto 0);
-    attribute S of LED_data     : signal is "TRUE";
+    signal LED_data : std_logic_vector( 7 downto 0);
 
-    signal Rx_mac_rd_sig         : std_logic;
+    signal Rx_mac_rd_sig : std_logic;
 
-    signal udp_valid                 : std_logic := '0';
-    attribute S of udp_valid     : signal is "TRUE";
+    signal udp_valid : std_logic := '0';
 
-    signal arp_valid_response     : std_logic;
-    signal arp_valid_response_recieved     : std_logic;
-    signal arp_valid     : std_logic;
-    attribute S of arp_valid : signal is "TRUE";
-
-    signal arp_mac     : std_logic_vector(47 downto 0);
-    attribute S of arp_mac : signal is "TRUE";
-
-    signal arp_ip        : std_logic_vector(31 downto 0);
-    attribute S of arp_ip : signal is "TRUE";
-
-    signal arp_send     : std_logic;
-    attribute S of arp_send : signal is "TRUE";
-
-    signal arp_clear     : std_logic;
-    attribute S of arp_clear : signal is "TRUE";
+    signal arp_valid_response          : std_logic;
+    signal arp_valid_response_recieved : std_logic;
+    signal arp_valid                   : std_logic;
+    signal arp_mac                     : std_logic_vector(47 downto 0);
+    signal arp_ip                      : std_logic_vector(31 downto 0);
+    signal arp_send                    : std_logic;
+    signal arp_clear                   : std_logic;
 
 
     -- signal for destination MAC address
@@ -391,41 +315,41 @@ architecture arc of UDP_1GbE is
     signal gmii_phy_rst_n : std_logic;
 
     -- PHY management
-    signal config_state : integer range 0 to 31 := 0;
-    signal config_checked : std_logic := '0';
+    signal config_state       : integer range 0 to 31 := 0;
+    signal config_checked     : std_logic := '0';
     signal config_delay_count : integer range 0 to 250000000;
-    signal phy_reg_addr : std_logic_vector(4 downto 0) := (others => '0');
+    signal phy_reg_addr       : std_logic_vector(4 downto 0) := (others => '0');
 
-    signal Divider                : std_logic_vector(7 downto 0) := x"1A";
-    signal CtrlData                 : std_logic_vector(15 downto 0);
-    signal Rgad                     : std_logic_vector(4 downto 0);
-    signal Fiad                     : std_logic_vector(4 downto 0) := "00001";
-    signal NoPre                     : std_logic;
-    signal WCtrlData                 : std_logic;
-    signal RStat                     : std_logic;
-    signal ScanStat                 : std_logic;
-    signal Busy                     : std_logic;
-    signal LinkFail                 : std_logic;
-    signal Nvalid                     : std_logic;
-    signal Prsd                     : std_logic_vector(15 downto 0);
-    signal WCtrlDataStart         : std_logic;
-    signal RStatStart                : std_logic;
+    signal Divider             : std_logic_vector(7 downto 0) := x"1A";
+    signal CtrlData            : std_logic_vector(15 downto 0);
+    signal Rgad                : std_logic_vector(4 downto 0);
+    signal Fiad                : std_logic_vector(4 downto 0) := "00001";
+    signal NoPre               : std_logic;
+    signal WCtrlData           : std_logic;
+    signal RStat               : std_logic;
+    signal ScanStat            : std_logic;
+    signal Busy                : std_logic;
+    signal LinkFail            : std_logic;
+    signal Nvalid              : std_logic;
+    signal Prsd                : std_logic_vector(15 downto 0);
+    signal WCtrlDataStart      : std_logic;
+    signal RStatStart          : std_logic;
     signal UpdateMIIRX_DATAReg : std_logic;
 
     -- Udp transmission
-    signal udp_counter   : integer := 0;
-    signal udp_rec         : std_logic := '0';
-    signal counter_rx    : integer := 0;
-    signal packet_vld    : std_logic := '0';
-    signal mac_init_ok   : std_logic := '0';
+    signal udp_counter : integer := 0;
+    signal udp_rec     : std_logic := '0';
+    signal counter_rx  : integer := 0;
+    signal packet_vld  : std_logic := '0';
+    signal mac_init_ok : std_logic := '0';
 
     -- Debug signals
-    signal tx_state : std_logic_vector(2 downto 0) := "000";
+    signal tx_state     : std_logic_vector(2 downto 0) := "000";
     signal rx_state     : std_logic_vector(2 downto 0) := "000";
     signal rx_udp_state : std_logic_vector(3 downto 0) := "0000";
-    signal toggle : std_logic := '0'; -- 50 mhz user clock
-    signal toggle1 : std_logic := '0'; -- 125 mhz
-    signal toggle2 : std_logic := '0'; -- 125 mhz
+    signal toggle       : std_logic := '0'; -- 50 mhz user clock
+    signal toggle1      : std_logic := '0'; -- 125 mhz
+    signal toggle2      : std_logic := '0'; -- 125 mhz
 begin
 
 
@@ -441,87 +365,85 @@ begin
     Ethernet_MAC_top : MAC_top
     port map(
         --//system signals
-        Reset        => reset,
-        Clk_125M    => clk_125mhz,
-        Clk_user    => clk_62_5mhz,--!!!!!!!!!!!
-        Clk_reg    => clk_62_5mhz,--!!!!!!!!!!!
+        Reset    => reset,
+        Clk_125M => clk_125mhz,
+        Clk_user => clk_62_5mhz,--!!!!!!!!!!!
+        Clk_reg  => clk_62_5mhz,--!!!!!!!!!!!
 
         -- speed settings after opencore tri-mode (PDF)!
-        -- b100 : 1000Mbit
-        -- b010 :  100Mbit
+        -- b100 :   1000Mbit
+        -- b010 :   100Mbit
         -- b001 :   10Mbit
-        Speed        => ethernet_speed,
-
+        Speed => ethernet_speed,
 
         --//user interface
-        Rx_mac_ra     => Rx_mac_ra,
-        Rx_mac_rd    => Rx_mac_rd,
-        Rx_mac_data    => Rx_mac_data,
-        Rx_mac_BE    => Rx_mac_BE,
-        Rx_mac_pa    => Rx_mac_pa,
-        Rx_mac_sop    => Rx_mac_sop,
-        Rx_mac_eop    => Rx_mac_eop,
+        Rx_mac_ra   => Rx_mac_ra,
+        Rx_mac_rd   => Rx_mac_rd,
+        Rx_mac_data => Rx_mac_data,
+        Rx_mac_BE   => Rx_mac_BE,
+        Rx_mac_pa   => Rx_mac_pa,
+        Rx_mac_sop  => Rx_mac_sop,
+        Rx_mac_eop  => Rx_mac_eop,
         --//user interface
-        Tx_mac_wa    => Tx_mac_wa,
-        Tx_mac_wr    => Tx_mac_wr,
-        Tx_mac_data    => Tx_mac_data,
-        Tx_mac_BE    => Tx_mac_BE, --//big endian
-        Tx_mac_sop    => Tx_mac_sop,
-        Tx_mac_eop    => Tx_mac_eop,
+        Tx_mac_wa   => Tx_mac_wa,
+        Tx_mac_wr   => Tx_mac_wr,
+        Tx_mac_data => Tx_mac_data,
+        Tx_mac_BE   => Tx_mac_BE, --//big endian
+        Tx_mac_sop  => Tx_mac_sop,
+        Tx_mac_eop  => Tx_mac_eop,
 
         --//pkg_lgth fifo
         -- signals for FIFO implementation of RX in core
         -- with clock Clk_user!!
-        Pkg_lgth_fifo_rd        => Pkg_lgth_fifo_rd,
-        Pkg_lgth_fifo_ra        => Pkg_lgth_fifo_ra,
-        Pkg_lgth_fifo_data    => Pkg_lgth_fifo_data,
+        Pkg_lgth_fifo_rd   => Pkg_lgth_fifo_rd,
+        Pkg_lgth_fifo_ra   => Pkg_lgth_fifo_ra,
+        Pkg_lgth_fifo_data => Pkg_lgth_fifo_data,
 
         --//Phy interface
-        Gtx_clk    => GIGE_GTX_CLK_buf,--//used only in GMII mode
-        Crs        => GIGE_CRS,
-        Col        => GIGE_COL,
+        Gtx_clk => GIGE_GTX_CLK_buf,--//used only in GMII mode
+        Crs     => GIGE_CRS,
+        Col     => GIGE_COL,
 
-        Rx_clk    => Rx_clk,
+        Rx_clk => Rx_clk,
         --Tx_clk    => Tx_clk, --//used only in MII mode
-        Tx_clk    => GIGE_TX_CLK, --//used only in MII mode
+        Tx_clk => GIGE_TX_CLK, --//used only in MII mode
         --Tx_clk    => '0',
-        Tx_er        => Tx_er,
-        Tx_en        => Tx_en,
-        Txd        => Txd,
-        Rx_er        => Rx_er,
-        Rx_dv        => Rx_dv,
-        Rxd        => Rxd,
-
+        Tx_er  => Tx_er,
+        Tx_en  => Tx_en,
+        Txd    => Txd,
+        Rx_er  => Rx_er,
+        Rx_dv  => Rx_dv,
+        Rxd    => Rxd,
 
         --//host interface
-        CSB        => CSB,
-        WRB        => WRB,
-        CD_in        => CD_in,
-        CD_out    => CD_out,
-        CA            => CA,
+        CSB    => CSB,
+        WRB    => WRB,
+        CD_in  => CD_in,
+        CD_out => CD_out,
+        CA     => CA,
 
         --//mdx
-        Mdo        => Mdo, --// MII Management Data Output
-        MdoEn        => MdoEn, --// MII Management Data Output Enable
-        Mdi        => Mdi,
-        Mdc        => MDC_sig, --// MII Management Data Clock
+        Mdo   => Mdo, --// MII Management Data Output
+        MdoEn => MdoEn, --// MII Management Data Output Enable
+        Mdi   => Mdi,
+        Mdc   => MDC_sig, --// MII Management Data Clock
 
         --
-        Divider                     => Divider,
-        CtrlData                 => CtrlData,
-        Rgad                         => Rgad,
-        Fiad                         => Fiad,
-        NoPre                     => NoPre,
-        WCtrlData                 => WCtrlData,
-        RStat                     => RStat,
-        ScanStat                 => ScanStat,
+        Divider   => Divider,
+        CtrlData  => CtrlData,
+        Rgad      => Rgad,
+        Fiad      => Fiad,
+        NoPre     => NoPre,
+        WCtrlData => WCtrlData,
+        RStat     => RStat,
+        ScanStat  => ScanStat,
 
-        Busy                         => Busy,
-        LinkFail                 => LinkFail,
-        Nvalid                     => Nvalid,
-        Prsd                         => Prsd,
-        WCtrlDataStart         => WCtrlDataStart,
-        RStatStart                => RStatStart,
+        Busy                 => Busy,
+        LinkFail             => LinkFail,
+        Nvalid               => Nvalid,
+        Prsd                 => Prsd,
+        WCtrlDataStart       => WCtrlDataStart,
+        RStatStart           => RStatStart,
         UpdateMIIRX_DATAReg  => UpdateMIIRX_DATAReg
     );
 
@@ -530,32 +452,29 @@ begin
 
     GIGE_TX_ER <= Tx_er;
     GIGE_TX_EN <= Tx_en;
-    GIGE_TXD <= Txd;
+    GIGE_TXD   <= Txd;
 
-    Rx_er <= GIGE_RX_ER;
-    Rx_dv <= GIGE_RX_DV;
-    Rxd <= GIGE_RXD;
+    Rx_er  <= GIGE_RX_ER;
+    Rx_dv  <= GIGE_RX_DV;
+    Rxd    <= GIGE_RXD;
     Rx_clk <= GIGE_RX_CLK;
 
     gmii_phy_rst_n <= not reset;
 
     -- MIIM Management
-    GIGE_MDIO <= Mdo when MdoEn = '1' else
-                          'Z';
-    Mdi <= GIGE_MDIO when MdoEn = '0' else
-            'Z';
+    GIGE_MDIO <= Mdo when MdoEn = '1' else 'Z';
+    Mdi <= GIGE_MDIO when MdoEn = '0' else 'Z';
 
-    CSB    <= '0';
-    WRB    <= '1';
+    CSB <= '0';
+    WRB <= '1';
 
     calc_ipv4_checksum_inst : calc_ipv4_checksum
     port map (
         clk => clk_62_5mhz,--!!!!!!!!!!!
-      data => eth_array(8)(31 downto 16) & eth_array(7) & eth_array(6) &
-                eth_array(5) & eth_array(4)& eth_array(3)(15 downto 0),
+        data => eth_array(8)(31 downto 16) & eth_array(7) & eth_array(6) & eth_array(5) & eth_array(4)& eth_array(3)(15 downto 0),
         --ready : out STD_LOGIC;
-      checksum => calc_checksum,
-      reset => '0'
+        checksum => calc_checksum,
+        reset => '0'
     );
 
     Rx_mac_rd <= Rx_mac_rd_sig AND Rx_mac_ra;
@@ -713,60 +632,6 @@ begin
         end if;
     end process;
 
-
---    udp_packet_data_process : process(clk_125mhz)
---    begin
---
---        if(rising_edge(clk_125mhz)) then
---        case rx_udp_state is
-
---            when x"0" =>
---                rx_udp_state <= x"0";
---                udp_rx_rdy     <= '0';
---                counter_rx   <= 0;
-
---                if(packet_valid = '1') then
---                    packet_vld <= '1';
---                end if;
-
---                if(counter_ethernet_rec = 10 and counter_rx = 0) then
---                    udp_rx_pkt_data_tmp(rcv_pkt_data_length - 1 downto rcv_pkt_data_length - 16) <= Rx_mac_data(15 downto 0);
---                    counter_rx <= counter_rx + 1;
---                    rx_udp_state <= x"1";
---                end if;
-
---            when x"1" =>
---                rx_udp_state <= x"1";
---                if(counter_rx = rcv_length_ethernet_frame ) then
---                    udp_rx_pkt_data_tmp((counter_rx * 32) - rcv_pkt_data_length - 1 downto  0) <= udp_rx_pkt_data_r(31 downto rcv_pkt_data_length - ((counter_rx * 32) - rcv_pkt_data_length));
---                    rx_udp_state <= x"2";
---                else
---                      udp_rx_pkt_data_tmp(rcv_pkt_data_length - 17 - (counter_rx * 32) downto rcv_pkt_data_length - 16 - (counter_rx * 32) - 32) <= Rx_mac_data;
---                      counter_rx <= counter_rx + 1;
---                end if;
---                udp_rx_pkt_data_tmp((counter_rx * 32) - rcv_pkt_data_length - 1 downto  0) <= udp_rx_pkt_data_r(31 downto rcv_pkt_data_length - ((counter_rx * 32) - rcv_pkt_data_length));
---            when x"2" =>
---                rx_udp_state <= x"2";
---                packet_vld <= '0';
---                if(udp_rx_pkt_req = '1' and udp_valid = '1') then
---                    udp_rx_pkt_data <= udp_rx_pkt_data_tmp;
---                    udp_rx_rdy        <= '1';
---                    rx_udp_state <= x"3";
---                end if;
-
---            when x"3" =>
---                rx_udp_state <= x"3";
---                if(udp_rx_pkt_req = '0') then
---                    udp_rx_rdy     <= '0';
---                    counter_rx   <= 0;
---                    rx_udp_state <= x"0";
---                end if;
-
---            when others => null;
---        end case;
---        end if;
---    end process;
-
     udp_packet_data_process : process(c3_rst0,clk_62_5mhz)
 
     begin
@@ -852,9 +717,6 @@ begin
             end case;
         end if;
     end process;
-
---    ila_data0(55 downto 32) <= udp_rx_pkt_data_tmp;
---    ila_data0(59 downto 56) <= rx_udp_state;
 
 
     ethernet_data_process : process(c3_rst0,clk_62_5mhz)
@@ -1168,41 +1030,13 @@ begin
     );
 
 
+    ---------------------------------------------------------------------------
+    --                            DUBUGGING SECTION
+    ---------------------------------------------------------------------------
 
+    ---------------------------------------------------------------------------
+    --                        END OF DUBUGGING SECTION
+    ---------------------------------------------------------------------------
 
-       -----------------------------------------------------------------------
-        --                DEBUGGING SECTION
-        -----------------------------------------------------------------------
---        icon_inst : icon
---        port map (
---         CONTROL0 => CONTROL0,
---         CONTROL1 => CONTROL1
---         );
-
---        ila0_inst : ila0
---        port map (
---         CONTROL => CONTROL0,
---         CLK => clk_125mhz,
---         DATA => ila_data0,
---         TRIG0 => TRIG0);
-
---        vio_inst : vio
---       port map (
---            CONTROL => CONTROL1,
---            ASYNC_OUT => vio_data);
-
---         ila_data0(31 downto 0)  <= Rx_mac_data;
---         ila_data0(32)             <= udp_rx_rdy_tmp;
---         ila_data0(34 downto 33) <= Tx_mac_BE;
---         ila_data0(58 downto 35) <= udp_rx_pkt_data_tmp(23 downto 0);--(1151 downto 1152-24);
---         ila_data0(60 downto 59) <= rx_udp_state(1 downto 0);
-
---         ila_data0(61) <= udp_rx_pkt_req;
---         ila_data0(62) <= Rx_mac_ra;
---         ila_data0(63) <= packet_vld;
-
---         trig0(0) <= Rx_mac_ra;
-
-         --Rx_mac_ra_dbg  <= Rx_mac_ra;
 
 end arc;
