@@ -61,21 +61,21 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 use IEEE.math_real.all;
 
 entity UDP_1GbE is
-  generic(
+    generic(
         UDP_TX_DATA_BYTE_LENGTH : natural := 1;
         UDP_RX_DATA_BYTE_LENGTH : natural:= 1
     );
-  port(
+    port(
         -- user logic interface
-        own_ip_addr     : in    std_logic_vector (31 downto 0);
-        own_mac_addr    : in    std_logic_vector (47 downto 0);
-        dst_ip_addr     : in    std_logic_vector (31 downto 0);
+        own_ip_addr     : in    std_logic_vector(31 downto 0);
+        own_mac_addr    : in    std_logic_vector(47 downto 0);
+        dst_ip_addr     : in    std_logic_vector(31 downto 0);
         dst_mac_addr    : in    std_logic_vector(47 downto 0);
 
-        udp_src_port    : in    std_logic_vector (15 downto 0);
-        udp_dst_port    : in    std_logic_vector (15 downto 0);
+        udp_src_port    : in    std_logic_vector(15 downto 0);
+        udp_dst_port    : in    std_logic_vector(15 downto 0);
 
-        udp_tx_pkt_data : in    std_logic_vector (8 * UDP_TX_DATA_BYTE_LENGTH - 1 downto 0);
+        udp_tx_pkt_data : in    std_logic_vector(8 * UDP_TX_DATA_BYTE_LENGTH - 1 downto 0);
         udp_tx_pkt_vld  : in    std_logic;
         udp_tx_rdy      : out   std_logic;
 
@@ -106,10 +106,7 @@ entity UDP_1GbE is
         clk_62_5mhz     : in    std_logic;
         sys_rst_i       : in    std_logic;
         sysclk_locked   : in    std_logic
-
-        -- debug
-        --Rx_mac_ra_dbg  : out std_logic
-  );
+    );
 end UDP_1GbE;
 
 architecture arc of UDP_1GbE is
@@ -195,10 +192,36 @@ architecture arc of UDP_1GbE is
     ---------------------------------------------------------------------------
     --                            DUBUGGING SECTION
     ---------------------------------------------------------------------------
+    signal dbg_i_own_ip_addr        : std_logic_vector(31 downto 0);
+    signal dbg_i_own_mac_addr       : std_logic_vector(47 downto 0);
+    signal dbg_i_dst_ip_addr        : std_logic_vector(31 downto 0);
+    signal dbg_i_dst_mac_addr       : std_logic_vector(47 downto 0);
+    signal dbg_i_udp_src_port       : std_logic_vector(15 downto 0);
+    signal dbg_i_udp_dst_port       : std_logic_vector(15 downto 0);
+    signal dbg_i_udp_tx_pkt_data_frq: std_logic_vector(47 downto 0);
+    signal dbg_i_udp_tx_pkt_vld     : std_logic;
+    signal dbg_i_sys_rst_i          : std_logic;
 
+    signal dbg_o_Busy               : std_logic;
+    signal dbg_o_LinkFail           : std_logic;
+    signal dbg_o_Nvalid             : std_logic;
+    signal dbg_o_Prsd               : std_logic_vector(15 downto 0);
+    signal dbg_o_WCtrlDataStart     : std_logic;
+    signal dbg_o_RStatStart         : std_logic;
+    signal dbg_o_UpdateMIIRX_DATAReg: std_logic;
     ---------------------------------------------------------------------------
     --                        END OF DUBUGGING SECTION
     ---------------------------------------------------------------------------
+
+    signal s_own_ip_addr        : std_logic_vector(31 downto 0);
+    signal s_own_mac_addr       : std_logic_vector(47 downto 0);
+    signal s_dst_ip_addr        : std_logic_vector(31 downto 0);
+    signal s_dst_mac_addr       : std_logic_vector(47 downto 0);
+    signal s_udp_src_port       : std_logic_vector(15 downto 0);
+    signal s_udp_dst_port       : std_logic_vector(15 downto 0);
+    signal s_udp_tx_pkt_data_frq: std_logic_vector(47 downto 0);
+    signal s_udp_tx_pkt_vld     : std_logic;
+    signal s_sys_rst_i          : std_logic;
 
     attribute S: string;
     attribute keep : string;
@@ -315,10 +338,10 @@ architecture arc of UDP_1GbE is
     signal gmii_phy_rst_n : std_logic;
 
     -- PHY management
-    signal config_state       : integer range 0 to 31 := 0;
-    signal config_checked     : std_logic := '0';
-    signal config_delay_count : integer range 0 to 250000000;
-    signal phy_reg_addr       : std_logic_vector(4 downto 0) := (others => '0');
+    signal config_state        : integer range 0 to 31 := 0;
+    signal config_checked      : std_logic := '0';
+    signal config_delay_count  : integer range 0 to 250000000;
+    signal phy_reg_addr        : std_logic_vector(4 downto 0) := (others => '0');
 
     signal Divider             : std_logic_vector(7 downto 0) := x"1A";
     signal CtrlData            : std_logic_vector(15 downto 0);
@@ -337,9 +360,9 @@ architecture arc of UDP_1GbE is
     signal UpdateMIIRX_DATAReg : std_logic;
 
     -- Udp transmission
-    signal udp_counter : integer := 0;
+    signal udp_counter : integer   := 0;
     signal udp_rec     : std_logic := '0';
-    signal counter_rx  : integer := 0;
+    signal counter_rx  : integer   := 0;
     signal packet_vld  : std_logic := '0';
     signal mac_init_ok : std_logic := '0';
 
@@ -353,10 +376,30 @@ architecture arc of UDP_1GbE is
 begin
 
 
-    reset <= not sysclk_locked;
+    -- s_own_ip_addr       <= own_ip_addr;
+    -- s_own_mac_addr      <= own_mac_addr;
+    -- s_dst_ip_addr       <= dst_ip_addr;
+    -- s_dst_mac_addr      <= dst_mac_addr;
+    -- s_udp_src_port      <= udp_src_port;
+    -- s_udp_dst_port      <= udp_dst_port;
+    -- s_udp_tx_pkt_data   <= udp_tx_pkt_data;
+    -- s_udp_tx_pkt_vld    <= udp_tx_pkt_vld;
+    -- s_sys_rst_i         <= sys_rst_i;
 
-    udp_tx_rdy <= '1' when (Tx_mac_wa = '1' and state_ethernet = wait_state2) else
-                      '0';
+    s_own_ip_addr           <= dbg_i_own_ip_addr;
+    s_own_mac_addr          <= dbg_i_own_mac_addr;
+    s_dst_ip_addr           <= dbg_i_dst_ip_addr;
+    s_dst_mac_addr          <= dbg_i_dst_mac_addr;
+    s_udp_src_port          <= dbg_i_udp_src_port;
+    s_udp_dst_port          <= dbg_i_udp_dst_port;
+    s_udp_tx_pkt_data_frq   <= dbg_i_udp_tx_pkt_data_frq;
+    s_udp_tx_pkt_vld        <= dbg_i_udp_tx_pkt_vld;
+    s_sys_rst_i             <= dbg_i_sys_rst_i;
+
+
+    reset <= not sysclk_locked or dbg_i_sys_rst_i;
+
+    udp_tx_rdy <= '1' when (Tx_mac_wa = '1' and state_ethernet = wait_state2) else '0';
      --dst_mac_addr <= dst_mac_addr_r;
 
     mac_init_done <= mac_init_ok;
@@ -496,7 +539,7 @@ begin
             udp_valid <= '0';
         elsif( rising_edge(clk_62_5mhz) ) then
             if( config_checked = '1' ) then
-                dst_mac_addr_r <= dst_mac_addr;
+                dst_mac_addr_r <= s_dst_mac_addr;
                 Rx_mac_rd_sig <= '0';
 
                 if(tx_state = "010") then
@@ -516,13 +559,13 @@ begin
                         -- check if dest. is our FPGA device!!
                         -- when true then packet_valid is high else low
                         if( counter_ethernet_rec = 0 ) then
-                            if( Rx_mac_data = own_mac_addr(47 downto 16) ) then
+                            if( Rx_mac_data = s_own_mac_addr (47 downto 16) ) then
                                 packet_valid <= '1';
                             else
                                 packet_valid <= '0';
                             end if;
                         elsif( counter_ethernet_rec = 1 ) then
-                            if( Rx_mac_data(31 downto 16) = own_mac_addr(15 downto 0) ) then
+                            if( Rx_mac_data(31 downto 16) = s_own_mac_addr (15 downto 0) ) then
                                 packet_valid <= '1';
                             else
                                 packet_valid <= '0';
@@ -580,27 +623,27 @@ begin
                                 rx_state <= "010";
                                 arp_ip <= Rx_mac_data;
                                 arp_valid_response <= '0';
-                                if( Rx_mac_data = dst_ip_addr ) then
+                                if( Rx_mac_data = s_dst_ip_addr  ) then
                                     arp_valid_response <= '1';
                                 end if;
 
                             elsif( counter_ethernet_rec = 8 ) then
                                 rx_state <= "011";
                                 arp_valid_response <= '0';
-                                if( Rx_mac_data = own_mac_addr(47 downto 16) ) then
+                                if( Rx_mac_data = s_own_mac_addr (47 downto 16) ) then
                                     arp_valid_response <= '1';
                                 end if;
 
                             elsif( counter_ethernet_rec = 9 ) then
                                 rx_state <= "100";
-                                if( Rx_mac_data(15 downto 0) = own_ip_addr(31 downto 16) ) then
+                                if( Rx_mac_data(15 downto 0) = s_own_ip_addr(31 downto 16) ) then
                                     arp_valid <= '1';
                                 else
                                     arp_valid <= '0';
                                 end if;
 
                                 arp_valid_response <= '0';
-                                if( Rx_mac_data(31 downto 16) = own_mac_addr(15 downto 0) ) then
+                                if( Rx_mac_data(31 downto 16) = s_own_mac_addr (15 downto 0) ) then
                                     arp_valid_response <= '1';
                                 end if;
 
@@ -608,7 +651,7 @@ begin
                                 rx_state <= "101";
                                 arp_valid <= '0';
                                 arp_valid_response <= '0';
-                                if( Rx_mac_data(31 downto 16) = own_ip_addr(15 downto 0) ) then
+                                if( Rx_mac_data(31 downto 16) = s_own_ip_addr(15 downto 0) ) then
                                     if( arp_valid_response = '1' ) then
                                         arp_valid_response_recieved <= '1';
                                         arp_send <= '0';
@@ -740,9 +783,9 @@ begin
 
 
         -- UDP packet
-        eth_array(0) <= dst_mac_addr_r(47 downto 16);
-        eth_array(1) <= dst_mac_addr_r(15 downto 0) & own_mac_addr(47 downto 32);
-        eth_array(2) <= own_mac_addr(31 downto 0);
+        eth_array(0) <= s_dst_mac_addr(47 downto 16);
+        eth_array(1) <= s_dst_mac_addr(15 downto 0) & s_own_mac_addr (47 downto 32);
+        eth_array(2) <= s_own_mac_addr (31 downto 0);
                         --  ethernet type    | Version / Header length | diff Services
         eth_array(3) <= x"0800"          & "0100" & "0101"         & "00000000"    ;
                             -- total length        |  identification
@@ -750,61 +793,69 @@ begin
                             -- Flags , Fragment Offeset  | time to live | protocol
         eth_array(5) <= "0100000000000000"          &  "01000000"  & "00010001";
                             -- header checksum |  Source IP:
-        eth_array(6) <= calc_checksum     &  own_ip_addr(31 downto 16);
+        eth_array(6) <= calc_checksum     &  s_own_ip_addr(31 downto 16);
                             --                           |  Destin IP:
-        eth_array(7) <= own_ip_addr(15 downto 0) &  dst_ip_addr(31 downto 16);
+        eth_array(7) <= s_own_ip_addr(15 downto 0) &  s_dst_ip_addr (31 downto 16);
                             --                             | source port
-        eth_array(8) <= dst_ip_addr(15 downto 0)  &  udp_src_port ;
+        eth_array(8) <= s_dst_ip_addr (15 downto 0)  &  s_udp_src_port ;
                             -- dest port | length
-        eth_array(9) <= udp_dst_port   & udp_header_length ;
+        eth_array(9) <= s_udp_dst_port   & udp_header_length ;
                             -- checksum  |  data
         eth_array(10)(31 downto 16) <= x"0000";
                             -- data
-        --eth_array(11) <= conv_std_logic_vector(udp_counter, 32);--x"6c6c6f20";
+        ---- eth_array(11) <= conv_std_logic_vector(udp_counter, 32);--x"6c6c6f20";
 
-        if(pkt_data_length = 8) then
-            eth_array(10)(15 downto 0) <= udp_tx_pkt_data & (7 downto 0 => '0');
-        else
-            eth_array(10)(15 downto 0) <= udp_tx_pkt_data(pkt_data_length - 1 downto pkt_data_length - 16);
+        -- if(pkt_data_length = 8) then
+        --     eth_array(10)(15 downto 0) <= udp_tx_pkt_data & (7 downto 0 => '0');
+        -- else
+        --     eth_array(10)(15 downto 0) <= udp_tx_pkt_data(pkt_data_length - 1 downto pkt_data_length - 16);
+        --
+        --     counter := 0;
+        --     for i in 11 to length_ethernet_frame - 2 loop
+        --         eth_array(i) <= udp_tx_pkt_data(pkt_data_length - (counter * 32) - 17 downto pkt_data_length - (counter * 32) - 48);
+        --         counter := counter + 1;
+        --     end loop;
+        --
+        --     if(pkt_byte_mod > 0) then
+        --         eth_array(length_ethernet_frame - 1) <=  udp_tx_pkt_data(pkt_data_mod - 1 downto 0) & (32 - pkt_data_mod - 1 downto 0  => '0');
+        --     else
+        --         eth_array(length_ethernet_frame - 1) <= udp_tx_pkt_data(31 downto 0);
+        --     end if;
+        -- end if;
 
-            counter := 0;
-            for i in 11 to length_ethernet_frame - 2 loop
-                eth_array(i) <= udp_tx_pkt_data(pkt_data_length - (counter * 32) - 17 downto pkt_data_length - (counter * 32) - 48);
-                counter := counter + 1;
-            end loop;
-
-            if(pkt_byte_mod > 0) then
-                eth_array(length_ethernet_frame - 1) <=  udp_tx_pkt_data(pkt_data_mod - 1 downto 0) & (32 - pkt_data_mod - 1 downto 0  => '0');
-            else
-                eth_array(length_ethernet_frame - 1) <= udp_tx_pkt_data(31 downto 0);
-            end if;
-        end if;
+        -- allowing chipscope to inject frequency data into payload (see spreadsheet)
+        eth_array(10)(15 downto 0)  <= udp_tx_pkt_data(127 downto 112);
+        eth_array(11)               <= udp_tx_pkt_data(111 downto 80);
+        eth_array(12)               <= udp_tx_pkt_data(79 downto 48);
+        eth_array(13)               <= dbg_i_udp_tx_pkt_data_frq(47 downto 16);
+        eth_array(14)(31 downto 16) <= dbg_i_udp_tx_pkt_data_frq(15 downto 0);
+        eth_array(14)(15 downto 0)  <= (others=>'0');
 
         -- answer to ARP request from any computer
         arp_array(0) <= arp_mac(47 downto 16);
-        arp_array(1) <= arp_mac(15 downto 0) & own_mac_addr(47 downto 32);
-        arp_array(2) <= own_mac_addr(31 downto 0);
+        arp_array(1) <= arp_mac(15 downto 0) & s_own_mac_addr (47 downto 32);
+        arp_array(2) <= s_own_mac_addr (31 downto 0);
         arp_array(3) <= x"0806" & x"0001";
         arp_array(4) <= x"0800" & x"06" & x"04";
-        arp_array(5) <= x"0002" & own_mac_addr(47 downto 32);
-        arp_array(6) <= own_mac_addr(31 downto 0);
-        arp_array(7) <= own_ip_addr;
+        arp_array(5) <= x"0002" & s_own_mac_addr (47 downto 32);
+        arp_array(6) <= s_own_mac_addr (31 downto 0);
+        arp_array(7) <= s_own_ip_addr;
         arp_array(8) <= arp_mac(47 downto 16);
         arp_array(9) <= arp_mac(15 downto 0) & arp_ip(31 downto 16);
         arp_array(10) <= arp_ip(15 downto 0) & x"0000";
 
         -- init ARP request array
         arp_request_array(0) <= x"FFFFFFFF";
-        arp_request_array(1) <= x"FFFF" & own_mac_addr(47 downto 32);
-        arp_request_array(2) <= own_mac_addr(31 downto 0);
+        arp_request_array(1) <= x"FFFF" & s_own_mac_addr (47 downto 32);
+        arp_request_array(2) <= s_own_mac_addr (31 downto 0);
         arp_request_array(3) <= x"0806" & x"0001";
         arp_request_array(4) <= x"0800" & x"06" & x"04";
-        arp_request_array(5) <= x"0001" & own_mac_addr(47 downto 32);
-        arp_request_array(6) <= own_mac_addr(31 downto 0);
-        arp_request_array(7) <= own_ip_addr;
+        arp_request_array(5) <= x"0001" & s_own_mac_addr (47 downto 32);
+        arp_request_array(6) <= s_own_mac_addr (31 downto 0);
+        arp_request_array(7) <= s_own_ip_addr;
         arp_request_array(8) <= x"00000000";
-        arp_request_array(9) <= x"0000" & dst_ip_addr(31 downto 16);
-        arp_request_array(10) <= dst_ip_addr(15 downto 0) & x"0000";
+        arp_request_array(9) <= x"0000" & s_dst_ip_addr (31 downto 16);
+        arp_request_array(10) <= s_dst_ip_addr (15 downto 0) & x"0000";
 
         if( c3_rst0 = '1' ) then
             Tx_mac_wr <= '0';
@@ -935,63 +986,75 @@ begin
     -- Marvell 88E1111S initialization
     ------------------------------------------------------------------------------
 
-    phy_config : process(clk_62_5mhz)
+    phy_config : process(clk_62_5mhz, reset)
     begin
         if(rising_edge(clk_62_5mhz)) then
-            case config_state is
-                when 0 =>
-                    if(config_delay_count < 250000000) then
-                        config_delay_count <= config_delay_count + 1;
-                    --else
-                    elsif(config_checked = '0') then
-                       phy_reg_addr <= phy_reg_addr + 1;
+            if reset = '1' then
+                -- reset the counter and other signals
+                config_state <= 0;
+                config_delay_count <= 0;
+                CtrlData  <= (others => '0');
+                Rgad      <= (others => '0');
+                NoPre     <= '0';
+                WCtrlData <= '0';
+                RStat     <= '0';
+                ScanStat  <= '0';
+            else
+                case config_state is
+                    when 0 =>
+                        if(config_delay_count < 250000000) then
+                            config_delay_count <= config_delay_count + 1;
+                        --else
+                        elsif(config_checked = '0') then
+                           phy_reg_addr <= phy_reg_addr + 1;
 
-                        config_state <= 1;
-                    end if;
-                when 1 =>
-                    CtrlData  <= x"0C61";
-                    Rgad      <= "10100"; -- Register 20
-                    NoPre     <= '0';
-                    WCtrlData <= '1';
-                    RStat     <= '0';
-                    ScanStat  <= '0';
-
-                    config_state <= 2;
-                when 2 =>
-                    if(Busy = '1') then
-                        config_state <= 3;
-                    end if;
-                when 3 =>
-                    if(Busy = '0') then
-                        config_state <= 4;
-                    elsif(MdoEn = '0') then
-                        WCtrlData     <= '0';
-                    end if;
-                when 4 =>
-                    CtrlData  <= x"0000";
-                    Rgad      <= "10100";
-                    NoPre     <= '0';
-                    WCtrlData <= '0';
-                    RStat     <= '1';
-                    ScanStat  <= '0';
-
-                    config_state <= 5;
-
-                when 5 =>
-                    if(Busy = '1') then
-                        config_state <= 6;
-                    end if;
-                when 6 =>
-                    if(Busy = '0') then
-                        config_delay_count <= 0;
-                        config_checked <= '1';
-                        config_state <= 0;
-                    elsif(MdoEn = '0') then
+                            config_state <= 1;
+                        end if;
+                    when 1 =>
+                        CtrlData  <= x"0C61";
+                        Rgad      <= "10100"; -- Register 20
+                        NoPre     <= '0';
+                        WCtrlData <= '1';
                         RStat     <= '0';
-                    end if;
-                when others =>
-                    null;
-            end case;
+                        ScanStat  <= '0';
+
+                        config_state <= 2;
+                    when 2 =>
+                        if(Busy = '1') then
+                            config_state <= 3;
+                        end if;
+                    when 3 =>
+                        if(Busy = '0') then
+                            config_state <= 4;
+                        elsif(MdoEn = '0') then
+                            WCtrlData     <= '0';
+                        end if;
+                    when 4 =>
+                        CtrlData  <= x"0000";
+                        Rgad      <= "10100";
+                        NoPre     <= '0';
+                        WCtrlData <= '0';
+                        RStat     <= '1';
+                        ScanStat  <= '0';
+
+                        config_state <= 5;
+
+                    when 5 =>
+                        if(Busy = '1') then
+                            config_state <= 6;
+                        end if;
+                    when 6 =>
+                        if(Busy = '0') then
+                            config_delay_count <= 0;
+                            config_checked <= '1';
+                            config_state <= 0;
+                        elsif(MdoEn = '0') then
+                            RStat     <= '0';
+                        end if;
+                    when others =>
+                        null;
+                end case;
+            end if;
         end if;
     end process;
 
