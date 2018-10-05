@@ -36,8 +36,8 @@ entity tcu_fc_reg_top is
         o_LED_FMC       : out   std_logic_vector(3 downto 0);
 
         -- 1Gbps ethernet ports
-        GIGE_COL        : in std_logic;
-        GIGE_CRS        : in std_logic;
+--        GIGE_COL        : in std_logic;
+--        GIGE_CRS        : in std_logic;
         GIGE_MDC        : out std_logic;
         GIGE_MDIO       : inout std_logic;
         GIGE_TX_CLK     : in std_logic;
@@ -126,8 +126,8 @@ architecture structural of tcu_fc_reg_top is
         pri_OUT         : OUT   std_logic;
         ACK_O           : OUT   std_logic;
         DAT_O           : OUT   std_logic_vector(15 downto 0);
-        GIGE_COL        : in std_logic;
-        GIGE_CRS        : in std_logic;
+--        GIGE_COL        : in std_logic;
+--        GIGE_CRS        : in std_logic;
         GIGE_MDC        : out std_logic;
         GIGE_MDIO       : inout std_logic;
         GIGE_TX_CLK     : in std_logic;
@@ -151,7 +151,7 @@ architecture structural of tcu_fc_reg_top is
     signal clk_1KHz     : std_logic := '0';
     
     
-    signal s_GIGE_RX_CLK     : std_logic := '0';
+--    signal s_GIGE_RX_CLK     : std_logic := '0';
 
 begin
 
@@ -182,14 +182,14 @@ begin
         slave_sel_OUT   => s_slave_sel
     );
 
-   IBUFG_inst : IBUFG
-   generic map (
-      IBUF_LOW_PWR => False, -- Low power (TRUE) vs. performance (FALSE) setting for referenced I/O standards
-      IOSTANDARD => "DEFAULT")
-   port map (
-      O => s_GIGE_RX_CLK, -- Clock buffer output
-      I => GIGE_RX_CLK  -- Clock buffer input (connect directly to top-level port)
-   );
+--   IBUFG_inst : IBUFG
+--   generic map (
+--      IBUF_LOW_PWR => False, -- Low power (TRUE) vs. performance (FALSE) setting for referenced I/O standards
+--      IOSTANDARD => "DEFAULT")
+--   port map (
+--      O => s_GIGE_RX_CLK, -- Clock buffer output
+--      I => GIGE_RX_CLK  -- Clock buffer input (connect directly to top-level port)
+--   );
 
     Inst_tcu_fc_reg: tcu_fc_reg
     PORT MAP(
@@ -214,14 +214,14 @@ begin
         ADR_I           => s_adr,
         ACK_O           => s_ack,
         DAT_O           => s_dat_s2m,
-        GIGE_COL => GIGE_COL,
-        GIGE_CRS => GIGE_CRS,
+--        GIGE_COL => GIGE_COL,
+--        GIGE_CRS => GIGE_CRS,
         GIGE_MDC => GIGE_MDC,
         GIGE_MDIO => GIGE_MDIO,
         GIGE_TX_CLK => GIGE_TX_CLK,
         GIGE_nRESET => GIGE_nRESET,
         GIGE_RXD => GIGE_RXD,
-        GIGE_RX_CLK => s_GIGE_RX_CLK,
+        GIGE_RX_CLK => GIGE_RX_CLK,
         GIGE_RX_DV => GIGE_RX_DV,
         GIGE_RX_ER => GIGE_RX_ER,
         GIGE_TXD => GIGE_TXD,

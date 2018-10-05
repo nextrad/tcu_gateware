@@ -41,8 +41,8 @@ entity tcu_fc_reg is
       ACK_O           : OUT   STD_LOGIC;
       DAT_O           : OUT   STD_LOGIC_VECTOR(WB_DATA_BUS_WIDTH - 1 DOWNTO 0);
 
-      GIGE_COL                : in  std_logic;
-      GIGE_CRS                : in  std_logic;
+--      GIGE_COL                : in  std_logic;
+--      GIGE_CRS                : in  std_logic;
       GIGE_MDC                : out std_logic;
       GIGE_MDIO               : inout std_logic;
       GIGE_TX_CLK             : in  std_logic;
@@ -106,7 +106,7 @@ architecture structural of tcu_fc_reg is
     PORT(
         clk_IN : IN std_logic;
         clk_125MHz_IN           : in  std_logic;
-        clk_50MHz_IN           : in  std_logic;
+        --clk_50MHz_IN           : in  std_logic;
         clk_locked_IN           : in  std_logic;
         rst_IN : IN std_logic;
         trigger_IN : IN std_logic;
@@ -127,8 +127,8 @@ architecture structural of tcu_fc_reg is
         pol_tx_l_OUT : OUT std_logic;
         pol_rx_l_OUT : OUT std_logic;
         pri_OUT : OUT std_logic;
-        GIGE_COL                : in  std_logic;
-        GIGE_CRS                : in  std_logic;
+--        GIGE_COL                : in  std_logic;
+--        GIGE_CRS                : in  std_logic;
         GIGE_MDC                : out std_logic;
         GIGE_MDIO               : inout std_logic;
         GIGE_TX_CLK             : in  std_logic;
@@ -173,7 +173,7 @@ begin
     Inst_tcu_fc: tcu_fc PORT MAP(
         clk_IN => clk_IN,
         clk_125MHz_IN => clk_125MHz_IN,
-        clk_50MHz_IN => clk_50MHz_IN,
+        --clk_50MHz_IN => clk_50MHz_IN,
         clk_locked_IN => clk_locked_IN,
         rst_IN => rst_IN,
         trigger_IN => trigger_IN,
@@ -194,8 +194,8 @@ begin
         pol_tx_l_OUT => pol_tx_l_OUT,
         pol_rx_l_OUT => pol_rx_l_OUT,
         pri_OUT => pri_OUT,
-        GIGE_COL => GIGE_COL,
-        GIGE_CRS => GIGE_CRS,
+--        GIGE_COL => GIGE_COL,
+--        GIGE_CRS => GIGE_CRS,
         GIGE_MDC => GIGE_MDC,
         GIGE_MDIO => GIGE_MDIO,
         GIGE_TX_CLK => GIGE_TX_CLK,

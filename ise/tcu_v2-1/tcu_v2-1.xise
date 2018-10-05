@@ -66,117 +66,154 @@
     <file xil_pn:name="../../contraints/tcu_v2-1.ucf" xil_pn:type="FILE_UCF">
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
-    <file xil_pn:name="../../hdl/pcores/rtl/ip/UDP_1GbE.vhd" xil_pn:type="FILE_VHDL">
-      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="28"/>
+    <file xil_pn:name="../../hdl/udp_core/ethernet_mac/single_signal_synchronizer.vhd" xil_pn:type="FILE_VHDL">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="127"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="8"/>
+      <library xil_pn:name="ethernet_mac"/>
+    </file>
+    <file xil_pn:name="../../hdl/udp_core/ethernet_mac/rx_fifo.vhd" xil_pn:type="FILE_VHDL">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="128"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="22"/>
+      <library xil_pn:name="ethernet_mac"/>
+    </file>
+    <file xil_pn:name="../../hdl/udp_core/ethernet_mac/crc32_tb.vhd" xil_pn:type="FILE_VHDL">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="129"/>
+      <association xil_pn:name="PostMapSimulation" xil_pn:seqID="129"/>
+      <association xil_pn:name="PostRouteSimulation" xil_pn:seqID="129"/>
+      <association xil_pn:name="PostTranslateSimulation" xil_pn:seqID="129"/>
+      <library xil_pn:name="ethernet_mac"/>
+    </file>
+    <file xil_pn:name="../../hdl/udp_core/ethernet_mac/reset_generator.vhd" xil_pn:type="FILE_VHDL">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="130"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="16"/>
+      <library xil_pn:name="ethernet_mac"/>
+    </file>
+    <file xil_pn:name="../../hdl/udp_core/ethernet_mac/crc32.vhd" xil_pn:type="FILE_VHDL">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="131"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="5"/>
+      <library xil_pn:name="ethernet_mac"/>
+    </file>
+    <file xil_pn:name="../../hdl/udp_core/ethernet_mac/utility.vhd" xil_pn:type="FILE_VHDL">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="132"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="2"/>
+      <library xil_pn:name="ethernet_mac"/>
+    </file>
+    <file xil_pn:name="../../hdl/udp_core/ethernet_mac/ethernet_types.vhd" xil_pn:type="FILE_VHDL">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="133"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="4"/>
+      <library xil_pn:name="ethernet_mac"/>
+    </file>
+    <file xil_pn:name="../../hdl/udp_core/ethernet_mac/framing_common.vhd" xil_pn:type="FILE_VHDL">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="134"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="11"/>
+      <library xil_pn:name="ethernet_mac"/>
+    </file>
+    <file xil_pn:name="../../hdl/udp_core/ethernet_mac/miim_types.vhd" xil_pn:type="FILE_VHDL">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="135"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="3"/>
+      <library xil_pn:name="ethernet_mac"/>
+    </file>
+    <file xil_pn:name="../../hdl/udp_core/ethernet_mac/mii_gmii.vhd" xil_pn:type="FILE_VHDL">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="136"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="17"/>
+      <library xil_pn:name="ethernet_mac"/>
+    </file>
+    <file xil_pn:name="../../hdl/udp_core/ethernet_mac/ethernet.vhd" xil_pn:type="FILE_VHDL">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="137"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="23"/>
+      <library xil_pn:name="ethernet_mac"/>
+    </file>
+    <file xil_pn:name="../../hdl/udp_core/ethernet_mac/miim_control.vhd" xil_pn:type="FILE_VHDL">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="138"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="18"/>
+      <library xil_pn:name="ethernet_mac"/>
+    </file>
+    <file xil_pn:name="../../hdl/udp_core/ethernet_mac/miim.vhd" xil_pn:type="FILE_VHDL">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="139"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="19"/>
+      <library xil_pn:name="ethernet_mac"/>
+    </file>
+    <file xil_pn:name="../../hdl/udp_core/ethernet_mac/ethernet_with_fifos.vhd" xil_pn:type="FILE_VHDL">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="140"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="25"/>
+      <library xil_pn:name="ethernet_mac"/>
+    </file>
+    <file xil_pn:name="../../hdl/udp_core/ethernet_mac/tx_fifo_adapter.vhd" xil_pn:type="FILE_VHDL">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="141"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="15"/>
+      <library xil_pn:name="ethernet_mac"/>
+    </file>
+    <file xil_pn:name="../../hdl/udp_core/ethernet_mac/mii_gmii_io.vhd" xil_pn:type="FILE_VHDL">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="142"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="9"/>
+      <library xil_pn:name="ethernet_mac"/>
+    </file>
+    <file xil_pn:name="../../hdl/udp_core/ethernet_mac/miim_registers.vhd" xil_pn:type="FILE_VHDL">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="143"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="10"/>
+      <library xil_pn:name="ethernet_mac"/>
+    </file>
+    <file xil_pn:name="../../hdl/udp_core/ethernet_mac/ethernet_mac_tb.vhd" xil_pn:type="FILE_VHDL">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="144"/>
+      <association xil_pn:name="PostMapSimulation" xil_pn:seqID="144"/>
+      <association xil_pn:name="PostRouteSimulation" xil_pn:seqID="144"/>
+      <association xil_pn:name="PostTranslateSimulation" xil_pn:seqID="144"/>
+      <library xil_pn:name="ethernet_mac"/>
+    </file>
+    <file xil_pn:name="../../hdl/udp_core/ethernet_mac/framing.vhd" xil_pn:type="FILE_VHDL">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="145"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="20"/>
+      <library xil_pn:name="ethernet_mac"/>
+    </file>
+    <file xil_pn:name="../../hdl/udp_core/udp_core.vhd" xil_pn:type="FILE_VHDL">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="147"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="28"/>
     </file>
-    <file xil_pn:name="../../hdl/pcores/rtl/OpenCores_MAC/calc_ipv4_checksum.vhd" xil_pn:type="FILE_VHDL">
-      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="27"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="27"/>
+    <file xil_pn:name="../../hdl/udp_core/ethernet_mac/xilinx/fixed_input_delay.vhd" xil_pn:type="FILE_VHDL">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="148"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="1"/>
+      <library xil_pn:name="ethernet_mac"/>
     </file>
-    <file xil_pn:name="../../hdl/pcores/rtl/OpenCores_MAC/MAC_top.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="26"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="26"/>
+    <file xil_pn:name="../../hdl/udp_core/ethernet_mac/xilinx/input_buffer.vhd" xil_pn:type="FILE_VHDL">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="149"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="7"/>
+      <library xil_pn:name="ethernet_mac"/>
     </file>
-    <file xil_pn:name="../../hdl/pcores/rtl/OpenCores_MAC/MAC_rx.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="22"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="22"/>
+    <file xil_pn:name="../../hdl/udp_core/ethernet_mac/xilinx/mii_gmii_io_spartan6.vhd" xil_pn:type="FILE_VHDL">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="150"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="13"/>
+      <library xil_pn:name="ethernet_mac"/>
     </file>
-    <file xil_pn:name="../../hdl/pcores/rtl/OpenCores_MAC/MAC_tx.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="21"/>
+    <file xil_pn:name="../../hdl/udp_core/ethernet_mac/xilinx/output_buffer.vhd" xil_pn:type="FILE_VHDL">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="151"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="6"/>
+      <library xil_pn:name="ethernet_mac"/>
+    </file>
+    <file xil_pn:name="../../hdl/udp_core/ethernet_mac/xilinx/single_signal_synchronizer_spartan6.vhd" xil_pn:type="FILE_VHDL">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="152"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="12"/>
+      <library xil_pn:name="ethernet_mac"/>
+    </file>
+    <file xil_pn:name="../../hdl/udp_core/ethernet_mac/xilinx/tx_fifo.vhd" xil_pn:type="FILE_VHDL">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="153"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="21"/>
+      <library xil_pn:name="ethernet_mac"/>
     </file>
-    <file xil_pn:name="../../hdl/pcores/rtl/OpenCores_MAC/MAC_rx/CRC_chk.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="17"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="17"/>
-    </file>
-    <file xil_pn:name="../../hdl/pcores/rtl/OpenCores_MAC/MAC_rx/MAC_rx_ctrl.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="16"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="16"/>
-    </file>
-    <file xil_pn:name="../../hdl/pcores/rtl/OpenCores_MAC/MAC_rx/MAC_rx_FF.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="15"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="15"/>
-    </file>
-    <file xil_pn:name="../../hdl/pcores/rtl/OpenCores_MAC/MAC_tx/CRC_gen.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="14"/>
+    <file xil_pn:name="../../hdl/udp_core/ethernet_mac/xilinx/ipcore_dir/ethernet_mac_tx_fifo_xilinx.xco" xil_pn:type="FILE_COREGEN">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="154"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="14"/>
     </file>
-    <file xil_pn:name="../../hdl/pcores/rtl/OpenCores_MAC/MAC_tx/flow_ctrl.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="13"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="13"/>
+    <file xil_pn:name="../../hdl/udp_core/clock_generator.vhd" xil_pn:type="FILE_VHDL">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="130"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="26"/>
     </file>
-    <file xil_pn:name="../../hdl/pcores/rtl/OpenCores_MAC/MAC_tx/MAC_tx_Ctrl.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="12"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="12"/>
+    <file xil_pn:name="../../hdl/udp_core/calc_ipv4_checksum.vhd" xil_pn:type="FILE_VHDL">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="131"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="27"/>
     </file>
-    <file xil_pn:name="../../hdl/pcores/rtl/OpenCores_MAC/MAC_tx/MAC_tx_FF.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="11"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="11"/>
-    </file>
-    <file xil_pn:name="../../hdl/pcores/rtl/OpenCores_MAC/MAC_tx/Ramdon_gen.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="10"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="10"/>
-    </file>
-    <file xil_pn:name="../../hdl/pcores/rtl/OpenCores_MAC/afifo.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="25"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="25"/>
-    </file>
-    <file xil_pn:name="../../hdl/pcores/rtl/OpenCores_MAC/Clk_ctrl.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="24"/>
+    <file xil_pn:name="../../hdl/udp_core/reset_generator.vhd" xil_pn:type="FILE_VHDL">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="144"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="24"/>
-    </file>
-    <file xil_pn:name="../../hdl/pcores/rtl/OpenCores_MAC/eth_miim.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="23"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="23"/>
-    </file>
-    <file xil_pn:name="../../hdl/pcores/rtl/OpenCores_MAC/Phy_int.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="20"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="20"/>
-    </file>
-    <file xil_pn:name="../../hdl/pcores/rtl/OpenCores_MAC/reg_int.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="19"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="19"/>
-    </file>
-    <file xil_pn:name="../../hdl/pcores/rtl/OpenCores_MAC/RMON.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="18"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="18"/>
-    </file>
-    <file xil_pn:name="../../hdl/pcores/rtl/OpenCores_MAC/RMON/RMON_addr_gen.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="6"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="6"/>
-    </file>
-    <file xil_pn:name="../../hdl/pcores/rtl/OpenCores_MAC/RMON/RMON_ctrl.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="5"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="5"/>
-    </file>
-    <file xil_pn:name="../../hdl/pcores/rtl/OpenCores_MAC/RMON/RMON_dpram.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="4"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="4"/>
-    </file>
-    <file xil_pn:name="../../hdl/pcores/rtl/OpenCores_MAC/TECH/xilinx/CLK_DIV2.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="3"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="3"/>
-    </file>
-    <file xil_pn:name="../../hdl/pcores/rtl/OpenCores_MAC/TECH/xilinx/CLK_SWITCH.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="2"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="2"/>
-    </file>
-    <file xil_pn:name="../../hdl/pcores/rtl/OpenCores_MAC/TECH/xilinx/duram.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="1"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="1"/>
-    </file>
-    <file xil_pn:name="../../hdl/pcores/rtl/OpenCores_MAC/miim/eth_clockgen.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="9"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="9"/>
-    </file>
-    <file xil_pn:name="../../hdl/pcores/rtl/OpenCores_MAC/miim/eth_outputcontrol.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="8"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="8"/>
-    </file>
-    <file xil_pn:name="../../hdl/pcores/rtl/OpenCores_MAC/miim/eth_shiftreg.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="7"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="7"/>
     </file>
     <file xil_pn:name="../../hdl/cores/clk_wiz_v3_6.xise" xil_pn:type="FILE_COREGENISE">
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
@@ -191,6 +228,9 @@
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
     <file xil_pn:name="../../../../Dropbox/2017/nextrad/source/NeXtRAD-TCU-master-Dominic/NeXtRAD-TCU-Controller/pcores/rtl/spartan6/ila0.xise" xil_pn:type="FILE_COREGENISE">
+      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
+    </file>
+    <file xil_pn:name="../../hdl/udp_core/ethernet_mac/xilinx/ipcore_dir/ethernet_mac_tx_fifo_xilinx.xise" xil_pn:type="FILE_COREGENISE">
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
   </files>
@@ -324,7 +364,7 @@
     <property xil_pn:name="JTAG Pin TDI" xil_pn:value="Pull Up" xil_pn:valueState="default"/>
     <property xil_pn:name="JTAG Pin TDO" xil_pn:value="Pull Up" xil_pn:valueState="default"/>
     <property xil_pn:name="JTAG Pin TMS" xil_pn:value="Pull Up" xil_pn:valueState="default"/>
-    <property xil_pn:name="Keep Hierarchy" xil_pn:value="Soft" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Keep Hierarchy" xil_pn:value="No" xil_pn:valueState="default"/>
     <property xil_pn:name="LUT Combining Map" xil_pn:value="Off" xil_pn:valueState="default"/>
     <property xil_pn:name="LUT Combining Xst" xil_pn:value="Auto" xil_pn:valueState="default"/>
     <property xil_pn:name="Language" xil_pn:value="VHDL" xil_pn:valueState="default"/>
@@ -525,7 +565,9 @@
     <binding xil_pn:location="/tcu_fc_reg_top" xil_pn:name="../../contraints/tcu_v2-1.ucf"/>
   </bindings>
 
-  <libraries/>
+  <libraries>
+    <library xil_pn:name="ethernet_mac"/>
+  </libraries>
 
   <autoManagedFiles>
     <!-- The following files are identified by `include statements in verilog -->

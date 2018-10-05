@@ -137,10 +137,7 @@ NET "o_LED_FMC[2]"   LOC = W8 | IOSTANDARD = LVCMOS25;   # FMC0_LA_P33
 NET "o_LED_FMC[3]"   LOC = W7 | IOSTANDARD = LVCMOS25;   # FMC0_LA_N33
 
 # Set ethernet pins
-
-NET "GIGE_COL"     LOC = AC2 | IOSTANDARD = LVCMOS25;
-NET "GIGE_CRS"     LOC = AD1 | IOSTANDARD = LVCMOS25;
-#NET "GIGE_MDC"     LOC = AC1 | IOSTANDARD = LVCMOS25;
+NET "GIGE_MDC"     LOC = AC1 | IOSTANDARD = LVCMOS25;
 NET "GIGE_MDIO"    LOC = AE2 | IOSTANDARD = LVCMOS25;
 NET "GIGE_GTX_CLK" LOC = AB5 | IOSTANDARD = LVCMOS25 | SLEW = FAST;
 NET "GIGE_nRESET"  LOC = AA2 | IOSTANDARD = LVCMOS25;
@@ -169,6 +166,50 @@ NET "GIGE_TX_CLK" LOC = T1  | IOSTANDARD = LVCMOS25 | SLEW = FAST;
 NET "GIGE_TX_EN"  LOC = AC4 | IOSTANDARD = LVCMOS25 | SLEW = FAST;
 NET "GIGE_TX_ER"  LOC = AA4 | IOSTANDARD = LVCMOS25 | SLEW = FAST;
 
+
+#Created by Constraints Editor (xc6slx45-fgg484-2) - 2015/06/03
+NET "GIGE_TX_ER" TNM = "gmii_out";
+NET "GIGE_TXD[0]" TNM = "gmii_out";
+NET "GIGE_TXD[1]" TNM = "gmii_out";
+NET "GIGE_TXD[2]" TNM = "gmii_out";
+NET "GIGE_TXD[3]" TNM = "gmii_out";
+NET "GIGE_TXD[4]" TNM = "gmii_out";
+NET "GIGE_TXD[5]" TNM = "gmii_out";
+NET "GIGE_TXD[6]" TNM = "gmii_out";
+NET "GIGE_TXD[7]" TNM = "gmii_out";
+NET "GIGE_TX_EN" TNM = "gmii_out";
+NET "GIGE_GTX_CLK" TNM = "gmii_out";
+NET "GIGE_RX_ER" TNM = "mii_in";
+NET "GIGE_RX_DV" TNM = "mii_in";
+NET "GIGE_RXD[7]" TNM = "mii_in";
+NET "GIGE_RXD[6]" TNM = "mii_in";
+NET "GIGE_RXD[5]" TNM = "mii_in";
+NET "GIGE_RXD[4]" TNM = "mii_in";
+NET "GIGE_RXD[3]" TNM = "mii_in";
+NET "GIGE_RXD[1]" TNM = "mii_in";
+NET "GIGE_RXD[0]" TNM = "mii_in";
+NET "GIGE_RXD[2]" TNM = "mii_in";
+#Created by Constraints Editor (xc6slx45-fgg484-2) - 2015/06/03
+# 25 ns constraint is for MII only
+# REFERENCE_PIN constraint is for GMII bus skew analysis
+TIMEGRP "gmii_out" OFFSET = OUT 25 ns AFTER "GIGE_TX_CLK" REFERENCE_PIN "GIGE_GTX_CLK";
+
+
+NET "GIGE_MDC" SLEW = SLOW;
+NET "GIGE_MDIO" SLEW = SLOW;
+
+#Created by Constraints Editor (xc6slx45-fgg484-2) - 2015/06/06
+NET "GIGE_TX_CLK" TNM_NET = GIGE_TX_CLK;
+TIMESPEC TS_GIGE_TX_CLK = PERIOD "GIGE_TX_CLK" 40 ns HIGH 35%;
+#Created by Constraints Editor (xc6slx45-fgg484-2) - 2015/06/06
+#Created by Constraints Editor (xc6slx45-fgg484-2) - 2015/06/06
+NET "GIGE_RX_CLK" TNM_NET = GIGE_RX_CLK;
+TIMESPEC TS_GIGE_RX_CLK = PERIOD "GIGE_RX_CLK" 125 MHz HIGH 33%;
+TIMEGRP "mii_in" OFFSET = IN 2.5 ns VALID 3 ns BEFORE "GIGE_RX_CLK" RISING;
+#TIMEGRP "mii_in" OFFSET = IN 3 ns VALID 4 ns BEFORE "GIGE_RX_CLK" RISING;
+#Created by Constraints Editor (xc6slx45-fgg484-2) - 2015/08/05
+#INST "ethernet_with_fifos_inst/ethernet_inst/mii_gmii_io_inst/ODDR2_inst" TNM = GIGE_GTX_CLKddr2;
+#TIMESPEC TS_gmii_gtx_clk_ce_ignore = FROM "FFS" TO "GIGE_GTX_CLKddr2" TIG;
 # done ethernet
 
 # Define system clock
@@ -197,4 +238,4 @@ TIMESPEC "TS_GIGE_RX_CLK" = PERIOD "GIGE_RX_CLK" 8 ns HIGH 50 %;
 NET "GIGE_MDC" TNM_NET = "GIGE_MDC";
 TIMESPEC "TS_GIGE_MDC" = PERIOD "GIGE_MDC" 2.5 MHz HIGH 50 %;
 
-NET "GIGE_RX_CLK" CLOCK_DEDICATED_ROUTE = FALSE;
+#NET "GIGE_RX_CLK" CLOCK_DEDICATED_ROUTE = FALSE;
