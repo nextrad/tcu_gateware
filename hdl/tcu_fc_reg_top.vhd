@@ -3,7 +3,8 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 Library UNISIM;
 use UNISIM.vcomponents.all;
-
+--TODO:
+--    send_eth_packet
 entity tcu_fc_reg_top is
   port (
         -- External clock source
@@ -21,6 +22,7 @@ entity tcu_fc_reg_top is
         i_GPMC_N_ADV_ALE: in    std_logic;
 
         -- Interface ports
+        i_RESET         : in  std_logic;
         i_TRIGGER       : in  std_logic;
         o_BIAS_X        : out std_logic;
         o_BIAS_L        : out std_logic;
@@ -29,15 +31,14 @@ entity tcu_fc_reg_top is
         o_POL_RX_L      : out std_logic;
         o_PRI           : out std_logic;
         o_TRIGGER       : out std_logic;
-        o_STATUS        : out std_logic;
+        o_STATUS_BUZ    : out std_logic;
+        o_STATUS_LED    : out std_logic_vector(3 downto 0);
 
         -- LED indicator ports
         o_LED_RHINO     : out   std_logic_vector(7 downto 0);
         o_LED_FMC       : out   std_logic_vector(3 downto 0);
 
         -- 1Gbps ethernet ports
---        GIGE_COL        : in std_logic;
---        GIGE_CRS        : in std_logic;
         GIGE_MDC        : out std_logic;
         GIGE_MDIO       : inout std_logic;
         GIGE_TX_CLK     : in std_logic;
@@ -83,12 +84,11 @@ architecture structural of tcu_fc_reg_top is
 
     -- Interconnecting signals
 
-
     signal s_clk_100    : std_logic:='0';
     signal s_clk_50     : std_logic:='0';
     signal s_clk_125    : std_logic:='0';
     signal s_clk_locked : std_logic:='0';
---    signal s_rst_sys    : std_logic;
+    signal s_rst_sys    : std_logic;
     signal s_clk_wb     : std_logic:='0';
     signal s_rst_wb     : std_logic:='0';
     signal s_ack        : std_logic:='0';
@@ -126,8 +126,6 @@ architecture structural of tcu_fc_reg_top is
         pri_OUT         : OUT   std_logic;
         ACK_O           : OUT   std_logic;
         DAT_O           : OUT   std_logic_vector(15 downto 0);
---        GIGE_COL        : in std_logic;
---        GIGE_CRS        : in std_logic;
         GIGE_MDC        : out std_logic;
         GIGE_MDIO       : inout std_logic;
         GIGE_TX_CLK     : in std_logic;
@@ -149,9 +147,6 @@ architecture structural of tcu_fc_reg_top is
     signal clk_2Hz      : std_logic := '0';
     signal clk_5Hz      : std_logic := '0';
     signal clk_1KHz     : std_logic := '0';
-    
-    
---    signal s_GIGE_RX_CLK     : std_logic := '0';
 
 begin
 
@@ -182,22 +177,14 @@ begin
         slave_sel_OUT   => s_slave_sel
     );
 
---   IBUFG_inst : IBUFG
---   generic map (
---      IBUF_LOW_PWR => False, -- Low power (TRUE) vs. performance (FALSE) setting for referenced I/O standards
---      IOSTANDARD => "DEFAULT")
---   port map (
---      O => s_GIGE_RX_CLK, -- Clock buffer output
---      I => GIGE_RX_CLK  -- Clock buffer input (connect directly to top-level port)
---   );
-
     Inst_tcu_fc_reg: tcu_fc_reg
     PORT MAP(
         clk_IN          => s_clk_100,
         clk_125MHz_IN          => s_clk_125,
         clk_50MHz_IN          => s_clk_50,
         clk_locked_IN          => s_clk_locked,
-        rst_IN          => s_rst_wb, -- CHECK THIS
+        -- rst_IN          => s_rst_wb, -- CHECK THIS
+        rst_IN          => s_rst_sys, -- CHECK THIS
         trigger_IN      => i_TRIGGER,
         status_OUT      => s_status,
         bias_x_OUT      => o_BIAS_X,
@@ -214,8 +201,6 @@ begin
         ADR_I           => s_adr,
         ACK_O           => s_ack,
         DAT_O           => s_dat_s2m,
---        GIGE_COL => GIGE_COL,
---        GIGE_CRS => GIGE_CRS,
         GIGE_MDC => GIGE_MDC,
         GIGE_MDIO => GIGE_MDIO,
         GIGE_TX_CLK => GIGE_TX_CLK,
@@ -230,6 +215,7 @@ begin
         GIGE_TX_ER => GIGE_TX_ER
     );
 
+    s_rst_sys  <= not i_RESET;
     o_LED_RHINO <= s_clk_locked & s_rst_wb & s_status(5 downto 0);
 
     with s_status select o_TRIGGER <=
@@ -247,14 +233,41 @@ begin
         "1111"                          when x"0005",
         clk_2Hz &"00"&(not clk_2Hz)     when OTHERS;
 
-    with s_status select o_STATUS <=
-        clk_1Hz   when x"0000",
-        clk_2Hz   when x"0001",
-        clk_5Hz   when x"0002",
-        clk_5Hz   when x"0003",
-        clk_5Hz   when x"0004",
-        '1'       when x"0005",
-        clk_0_5Hz when OTHERS;
+    -- with s_status select o_STATUS_BUZ <=
+    --     clk_1Hz   when x"0000",
+    --     clk_2Hz   when x"0001",
+    --     clk_5Hz   when x"0002",
+    --     clk_5Hz   when x"0003",
+    --     clk_5Hz   when x"0004",
+    --     '1'       when x"0005",
+    --     clk_0_5Hz when OTHERS;
+
+    status : process(s_status)
+    begin
+        case(s_status) is
+            when x"0000" =>     -- IDLE
+                o_STATUS_BUZ <= '0';
+                o_STATUS_LED <= "0001";
+            when x"0001" =>     -- ARMED
+                o_STATUS_BUZ <= '0';
+                o_STATUS_LED <= "0010";
+            when x"0002" =>     -- RUNNING
+                o_STATUS_BUZ <= clk_2Hz;
+                o_STATUS_LED <= "0100";
+            when x"0003" =>     -- RUNNING
+                o_STATUS_BUZ <= clk_2Hz;
+                o_STATUS_LED <= "0100";
+            when x"0004" =>     -- RUNNING
+                o_STATUS_BUZ <= clk_2Hz;
+                o_STATUS_LED <= "0100";
+            when x"0005" =>     -- DONE
+                o_STATUS_BUZ <= '0';
+                o_STATUS_LED <= "0000";
+            when others =>      -- FAULT
+                o_STATUS_BUZ <= '0';
+                o_STATUS_LED <= "1000";
+        end case;
+    end process;
 
         -- slow clock to drive LEDs
         process (s_clk_100)
