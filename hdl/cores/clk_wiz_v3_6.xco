@@ -1,7 +1,7 @@
 ##############################################################
 #
 # Xilinx Core Generator version 14.7
-# Date: Fri Sep 21 14:51:27 2018
+# Date: Tue Oct 16 10:17:43 2018
 #
 ##############################################################
 #
@@ -89,9 +89,9 @@ CSET clkout4_requested_phase=0.000
 CSET clkout4_used=true
 CSET clkout5_drives=BUFG
 CSET clkout5_requested_duty_cycle=50.000
-CSET clkout5_requested_out_freq=25.0000
+CSET clkout5_requested_out_freq=62.5000
 CSET clkout5_requested_phase=0.000
-CSET clkout5_used=true
+CSET clkout5_used=false
 CSET clkout6_drives=BUFG
 CSET clkout6_requested_duty_cycle=50.000
 CSET clkout6_requested_out_freq=100.000
@@ -189,7 +189,7 @@ CSET mmcm_notes=None
 CSET mmcm_ref_jitter1=0.010
 CSET mmcm_ref_jitter2=0.010
 CSET mmcm_startup_wait=false
-CSET num_out_clks=5
+CSET num_out_clks=4
 CSET override_dcm=false
 CSET override_dcm_clkgen=false
 CSET override_mmcm=false
@@ -212,7 +212,7 @@ CSET pll_clkout2_phase=0.000
 CSET pll_clkout3_divide=3
 CSET pll_clkout3_duty_cycle=0.500
 CSET pll_clkout3_phase=0.000
-CSET pll_clkout4_divide=40
+CSET pll_clkout4_divide=16
 CSET pll_clkout4_duty_cycle=0.500
 CSET pll_clkout4_phase=0.000
 CSET pll_clkout5_divide=1
@@ -251,13 +251,13 @@ CSET use_freeze=false
 CSET use_freq_synth=true
 CSET use_inclk_stopped=false
 CSET use_inclk_switchover=false
-CSET use_locked=true
+CSET use_locked=false
 CSET use_max_i_jitter=false
 CSET use_min_o_jitter=false
 CSET use_min_power=false
 CSET use_phase_alignment=true
 CSET use_power_down=false
-CSET use_reset=true
+CSET use_reset=false
 CSET use_spread_spectrum=false
 CSET use_spread_spectrum_1=false
 CSET use_status=false
@@ -266,4 +266,4 @@ CSET use_status=false
 MISC pkg_timestamp=2012-05-10T12:44:55Z
 # END Extra information
 GENERATE
-# CRC: c09dba12
+# CRC: 1a90ed23

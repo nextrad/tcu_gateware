@@ -19,8 +19,6 @@ generic(
 port(
         clk_IN                  : in  std_logic;
         clk_125MHz_IN           : in  std_logic;
-        -- clk_50MHz_IN            : in  std_logic;
-        clk_locked_IN           : in  std_logic;
         rst_IN                  : in  std_logic;
         trigger_IN              : in  std_logic;
 
@@ -44,7 +42,7 @@ port(
         pol_tx_l_OUT            : out std_logic;
         pol_rx_l_OUT            : out std_logic;
         pri_OUT                 : out std_logic;
-
+		  send_pkt_OUT : out std_logic;
         -- ethernet ports for frequency setting to REX/Passives
 --        GIGE_COL                : in  std_logic;
 --        GIGE_CRS                : in  std_logic;
@@ -136,7 +134,6 @@ architecture behave of tcu_fc is
     -- system control
     signal clk_125mhz               : std_logic;
     signal clk_100mhz               : std_logic;
-    signal clk_50mhz                : std_logic;
     signal sys_reset                : std_logic;
     signal sysclk_locked            : std_logic;
 
@@ -525,5 +522,5 @@ begin
     ---------------------------------------------------------------
     ---------------- UDP Core Instantiation END -------------------
     ---------------------------------------------------------------
-
+send_pkt_OUT <= udp_tx_pkt_vld;
 end behave;

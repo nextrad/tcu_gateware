@@ -29,10 +29,7 @@ PORT (
     sys_clk_N       : IN    STD_LOGIC;
     CLK_400MHz      : OUT   STD_LOGIC;
     CLK_100MHz      : OUT   STD_LOGIC;
-    CLK_50MHz       : OUT   STD_LOGIC;
     CLK_125MHz      : OUT   STD_LOGIC;
-    CLK_locked      : OUT   STD_LOGIC;
-    -- gpmc_clk        : OUT   STD_LOGIC;
 
     -- ------------------------------------------------------------------------------------------------
     -- WISHBONE SYSCON PORTS
@@ -75,7 +72,6 @@ ARCHITECTURE behavioral OF gpmc_wb IS
     SIGNAL gpmc_data_i          : STD_LOGIC_VECTOR(15 DOWNTO 0) := (OTHERS => '0');
 
     -- Clocks
-    SIGNAL s_clk_50             : STD_LOGIC := '0';
     SIGNAL s_clk_100            : STD_LOGIC := '0';
     SIGNAL s_clk_125            : STD_LOGIC := '0';
     SIGNAL s_clk_400            : STD_LOGIC := '0';
@@ -130,11 +126,7 @@ SIGNAL state : state_type := IDLE_STATE; -- Initialize state to IDLE_STATE
         o_CLK_100          : out    std_logic;
         o_CLK_125          : out    std_logic;
         o_CLK_200          : out    std_logic;
-        o_CLK_400          : out    std_logic;
-        o_CLK_62_5         : out    std_logic;
-        -- Status and control signals
-        RESET             : in     std_logic;
-        LOCKED            : out    std_logic
+        o_CLK_400          : out    std_logic
     );
     end component;
 
@@ -148,7 +140,6 @@ BEGIN
 
     CLK_400MHz <= s_clk_400;
     CLK_125MHz <= s_clk_125;
-    CLK_50MHz <= s_clk_50;
 
     Inst_clk_wiz_v3_6: clk_wiz_v3_6
     PORT MAP(
@@ -157,10 +148,7 @@ BEGIN
         o_CLK_100 => s_clk_100,
         o_CLK_125 => s_clk_125,
         o_CLK_400 => s_clk_400,
-        o_CLK_200 => s_clk_200,
-        o_CLK_62_5 => s_clk_50,
-        RESET  => '0',
-        LOCKED => CLK_locked
+        o_CLK_200 => s_clk_200
     );
 
 -- ------------------------------------------------------------------------------------------------

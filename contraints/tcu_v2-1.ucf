@@ -110,7 +110,7 @@ NET "o_STATUS_LED[3]" LOC = R5; # gpio[11]
 NET "i_RESET"              LOC = N8 | PULLUP; # gpio[12]
 #NET ""              LOC = N7; # gpio[13]
 #NET ""              LOC = R4; # gpio[14]
-#NET ""              LOC = R3; # gpio[15]
+NET "o_SEND_PKT"              LOC = R3; # gpio[15]
 
 # PRI signal on FMC0
 

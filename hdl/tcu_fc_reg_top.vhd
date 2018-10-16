@@ -3,8 +3,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 Library UNISIM;
 use UNISIM.vcomponents.all;
---TODO:
---    send_eth_packet
+
 entity tcu_fc_reg_top is
   port (
         -- External clock source
@@ -33,6 +32,8 @@ entity tcu_fc_reg_top is
         o_TRIGGER       : out std_logic;
         o_STATUS_BUZ    : out std_logic;
         o_STATUS_LED    : out std_logic_vector(3 downto 0);
+		  
+		  o_SEND_PKT		: out std_logic; -- debug udp tx signal
 
         -- LED indicator ports
         o_LED_RHINO     : out   std_logic_vector(7 downto 0);
@@ -72,8 +73,6 @@ architecture structural of tcu_fc_reg_top is
         CLK_400MHz      : OUT   std_logic;
         CLK_100MHz      : OUT   std_logic;
         CLK_125MHz      : OUT   STD_LOGIC;
-        CLK_50MHz       : OUT   STD_LOGIC;
-        CLK_locked      : OUT   STD_LOGIC;
         CLK             : OUT   std_logic;
         RST             : OUT   std_logic;
         DAT_O           : OUT   std_logic_vector(15 downto 0);
@@ -85,7 +84,6 @@ architecture structural of tcu_fc_reg_top is
     -- Interconnecting signals
 
     signal s_clk_100    : std_logic:='0';
-    signal s_clk_50     : std_logic:='0';
     signal s_clk_125    : std_logic:='0';
     signal s_clk_locked : std_logic:='0';
     signal s_rst_sys    : std_logic;
@@ -107,8 +105,6 @@ architecture structural of tcu_fc_reg_top is
 
         clk_IN          : IN    std_logic;
         clk_125MHz_IN           : in  std_logic;
-        clk_50MHz_IN           : in  std_logic;
-        clk_locked_IN           : in  std_logic;
         rst_IN          : IN    std_logic;
         trigger_IN      : IN    std_logic;
         CLK_I           : IN    std_logic;
@@ -124,6 +120,7 @@ architecture structural of tcu_fc_reg_top is
         pol_tx_l_OUT    : OUT   std_logic;
         pol_rx_l_OUT    : OUT   std_logic;
         pri_OUT         : OUT   std_logic;
+		  send_pkt_OUT : out std_logic;
         ACK_O           : OUT   std_logic;
         DAT_O           : OUT   std_logic_vector(15 downto 0);
         GIGE_MDC        : out std_logic;
@@ -165,8 +162,6 @@ begin
         CLK_400MHz      => s_clk_400MHz,
         CLK_100MHz      => s_clk_100,
         CLK_125MHz      => s_clk_125,
-        CLK_50MHz       => s_clk_50,
-        CLK_locked      => s_clk_locked,
         CLK             => s_clk_wb,
         RST             => s_rst_wb,
         ACK_I           => s_ack,
@@ -181,8 +176,6 @@ begin
     PORT MAP(
         clk_IN          => s_clk_100,
         clk_125MHz_IN          => s_clk_125,
-        clk_50MHz_IN          => s_clk_50,
-        clk_locked_IN          => s_clk_locked,
         -- rst_IN          => s_rst_wb, -- CHECK THIS
         rst_IN          => s_rst_sys, -- CHECK THIS
         trigger_IN      => i_TRIGGER,
@@ -193,6 +186,7 @@ begin
         pol_tx_l_OUT    => o_POL_TX_L,
         pol_rx_l_OUT    => o_POL_RX_L,
         pri_OUT         => o_PRI,
+		  send_pkt_OUT => o_SEND_PKT,
         CLK_I           => s_clk_wb,
         RST_I           => s_rst_wb,
         STB_I           => s_slave_sel,
@@ -216,6 +210,7 @@ begin
     );
 
     s_rst_sys  <= not i_RESET;
+    --s_rst_sys  <= '0';
     o_LED_RHINO <= s_clk_locked & s_rst_wb & s_status(5 downto 0);
 
     with s_status select o_TRIGGER <=
@@ -247,7 +242,8 @@ begin
         case(s_status) is
             when x"0000" =>     -- IDLE
                 o_STATUS_BUZ <= '0';
-                o_STATUS_LED <= "0001";
+--                o_STATUS_LED <= "0001";
+                o_STATUS_LED <= "1111";
             when x"0001" =>     -- ARMED
                 o_STATUS_BUZ <= '0';
                 o_STATUS_LED <= "0010";
