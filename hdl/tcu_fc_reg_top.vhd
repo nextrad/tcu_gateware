@@ -242,8 +242,7 @@ begin
         case(s_status) is
             when x"0000" =>     -- IDLE
                 o_STATUS_BUZ <= '0';
---                o_STATUS_LED <= "0001";
-                o_STATUS_LED <= "1111";
+                o_STATUS_LED <= "0001";
             when x"0001" =>     -- ARMED
                 o_STATUS_BUZ <= '0';
                 o_STATUS_LED <= "0010";
