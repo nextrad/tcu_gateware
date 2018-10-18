@@ -162,6 +162,7 @@ architecture behave of tcu_fc is
     signal tx_delay_cnt             : integer := 0;
 
     signal udp_send_packet          : std_logic:='0';
+    signal udp_init_packet          : std_logic:='0';
     signal udp_send_packet_r_50     : std_logic:='0';
     signal udp_send_packet_r2_50    : std_logic:='0';
     attribute keep of udp_send_packet: signal  is "TRUE";
@@ -270,11 +271,13 @@ begin
                         status_OUT(2 downto 0) <= "000";
                         if soft_arm = '1' then
                             state <= ARMED;
+                            udp_init_packet <= '1';
                         else
                             state <= IDLE;
                         end if;
 
                     when ARMED =>
+                    udp_init_packet <= '0';
                         status_OUT(2 downto 0) <= "001";
                         if soft_arm = '0' then
                             state <= IDLE;
@@ -287,10 +290,10 @@ begin
                     when PRE_PULSE =>
                         status_OUT(2 downto 0) <= "010";
                         start_amp_flag    <= '1';
-                        udp_send_packet   <= '1';
+                        -- udp_send_packet   <= '1';
                         pre_pulse_counter <= pre_pulse_counter + x"0001";
                         if pre_pulse_counter >= (pre_pulse_duration-1) then
-                            udp_send_packet   <= '0';
+                            -- udp_send_packet   <= '0';
                             start_amp_flag    <= '0';
                             start_pri_flag    <= '1';
                             state             <= MAIN_BANG;
@@ -362,10 +365,10 @@ begin
             else
                 if start_amp_flag = '1' then
                     amp_on <= '1';
---						  udp_send_packet <= '1';
+						  udp_send_packet <= '1';
                 end if;
                 if amp_on = '1' then
---							udp_send_packet <= '0';
+							udp_send_packet <= '0';
                     amp_on_counter <= amp_on_counter + x"0001";
                     if amp_on_counter >= (amp_on_duration-1) then -- -3 to compensate for 2 cycle lag
                         amp_on <= '0';
@@ -445,7 +448,8 @@ begin
     synch_ff1 : process(clk_125MHz_IN)
     begin
         if rising_edge(clk_125MHz_IN) then
-            udp_send_packet_r_50 <= udp_send_packet;
+            -- udp_send_packet_r_50 <= udp_send_packet or udp_init_packet;
+            udp_send_packet_r_50 <= udp_init_packet;
             l_band_freq_r_50     <= l_band_freq;
             x_band_freq_r_50     <= x_band_freq;
             pol_r_50             <= pol;
@@ -500,7 +504,7 @@ begin
         prt_dst_i   => x"2711",         --10001
 
         payload_i   => std_ulogic_vector(udp_tx_pkt_data),
-        send_pkt_i  => std_ulogic(udp_tx_pkt_vld),
+        send_pkt_i  => std_ulogic(udp_send_packet_r2_50),
 
         std_logic(mdc_o)            => GIGE_MDC,
         mdio_io                     => std_ulogic(GIGE_MDIO), -- check this

@@ -294,14 +294,14 @@ begin
 								case test_tx_state is
 									when TX_WAIT =>
                                         rst_delay <= '0';
-                                        if send_delay = c_SEND_DELAY then
+                                        -- if send_delay = c_SEND_DELAY then
     										if send_pkt_i = '1' then
     										test_tx_state <= TX_WRITE_SIZE_HI;
                                             send_delay <= 0;
     			                            end if;
-                                        else
-                                            send_delay <= send_delay + 1;
-                                        end if;
+                                        -- else
+                                            -- send_delay <= send_delay + 1;
+                                        -- end if;
 									when TX_WRITE_SIZE_HI =>
 										tx_wr_en      <= '1';
 										tx_data       <= std_ulogic_vector(to_unsigned(TEST_MODE_TX_PACKET_SIZE, 16)(15 downto 8));
