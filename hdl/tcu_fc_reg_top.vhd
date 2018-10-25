@@ -257,7 +257,7 @@ begin
                 o_STATUS_LED <= "0100";
             when x"0005" =>     -- DONE
                 o_STATUS_BUZ <= '0';
-                o_STATUS_LED <= "0000";
+                o_STATUS_LED <= "0111";
             when others =>      -- FAULT
                 o_STATUS_BUZ <= '0';
                 o_STATUS_LED <= "1000";
