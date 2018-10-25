@@ -448,8 +448,9 @@ begin
     synch_ff1 : process(clk_125MHz_IN)
     begin
         if rising_edge(clk_125MHz_IN) then
-            -- udp_send_packet_r_50 <= udp_send_packet or udp_init_packet;
-            udp_send_packet_r_50 <= udp_init_packet;
+            udp_send_packet_r_50 <= udp_send_packet;
+--            udp_send_packet_r_50 <= udp_send_packet or udp_init_packet;
+--            udp_send_packet_r_50 <= udp_init_packet;
             l_band_freq_r_50     <= l_band_freq;
             x_band_freq_r_50     <= x_band_freq;
             pol_r_50             <= pol;
@@ -496,12 +497,18 @@ begin
     PORT MAP(
         clock_125_i => clk_125MHz_IN,
 
+        mac_src_i   => x"0e0e0e0e0e0b",
+        prt_src_i   => x"1f40",         -- 8000
+		  -- uncomment for TCU 0
+--        ip_src_i    => x"c0a86b1c",     -- 192.168.107.28 TCU 0
+--        ip_dst_i    => x"c0a86b1d",     -- 192.168.107.29 REX
+--        mac_dst_i   => x"0e0e0e0e0e0c", -- MAC REX
+--        prt_dst_i   => x"1f43",         -- 8003 REX
+--        -- uncomment for TCU 1&2
         ip_src_i    => x"c0a83601",     -- 192.168.54.1
         ip_dst_i    => x"c0a83664",     -- 192.168.54.100
-        mac_src_i   => x"0e0e0e0e0e0b",
-        mac_dst_i   => x"0014a372173f", -- MAC PASSIVE
-        prt_src_i   => x"1f40",         --8000
-        prt_dst_i   => x"2711",         --10001
+        mac_dst_i   => x"0014a372173f", -- MAC PASSIVES
+        prt_dst_i   => x"2711",         -- 10001 PASSIVES
 
         payload_i   => std_ulogic_vector(udp_tx_pkt_data),
         send_pkt_i  => std_ulogic(udp_send_packet_r2_50),
