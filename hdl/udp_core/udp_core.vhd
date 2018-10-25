@@ -74,8 +74,8 @@ architecture rtl of udp_core is
 	constant TEST_MODE_TX_PACKET_SIZE : positive             := 57;
 
 --    signal mac_dst      : std_ulogic_vector(47  downto 0) := x"4c_cc_6a_49_6b_65";
-    signal mac_dst      : std_ulogic_vector(47  downto 0) := x"0014a372173f"; -- passive
-    signal mac_src      : std_ulogic_vector(47  downto 0) := x"0e0e0e0e0e0b";
+    signal mac_dst      : std_ulogic_vector(47  downto 0):= (others=>'0');-- := x"0014a372173f"; -- passive
+    signal mac_src      : std_ulogic_vector(47  downto 0):= (others=>'0');-- := x"0e0e0e0e0e0b";
     signal eth_type     : std_ulogic_vector(15  downto 0) := x"0800";
     signal ver          : std_ulogic_vector(7   downto 0) := "01000101";
     signal serv         : std_ulogic_vector(7   downto 0) := x"00";
@@ -85,14 +85,14 @@ architecture rtl of udp_core is
     signal ttl          : std_ulogic_vector(7   downto 0) := "01000000";
     signal protocol     : std_ulogic_vector(7   downto 0) := "00010001";
     signal hdr_checksum : std_ulogic_vector(15  downto 0) := x"0000";               -- check this
-    signal ip_src       : std_ulogic_vector(31  downto 0) := x"c0a83601";           -- 192.168.54.1;
-    signal ip_dst       : std_ulogic_vector(31  downto 0) := x"c0a83664";           -- 192.168.54.100
+    signal ip_src       : std_ulogic_vector(31  downto 0):= (others=>'0');-- := x"c0a83601";           -- 192.168.54.1;
+    signal ip_dst       : std_ulogic_vector(31  downto 0):= (others=>'0');-- := x"c0a83664";           -- 192.168.54.100
 --    signal ip_dst       : std_ulogic_vector(31  downto 0) := x"ffffffff";           -- broadcast?
-    signal prt_src      : std_ulogic_vector(15  downto 0) := x"1f40";               --8000
-    signal prt_dst      : std_ulogic_vector(15  downto 0) := x"2711";               --10001
+    signal prt_src      : std_ulogic_vector(15  downto 0):= (others=>'0');-- := x"1f40";               --8000
+    signal prt_dst      : std_ulogic_vector(15  downto 0):= (others=>'0');-- := x"2711";               --10001
     signal len          : std_ulogic_vector(15  downto 0) := x"0017";               -- UDP length field to 0x0017 = 23
-    signal checksum     : std_ulogic_vector(15  downto 0) := x"6792"; -- copy from pc calc
-    signal data         : std_ulogic_vector(119 downto 0) := (others=>'1');
+    signal checksum     : std_ulogic_vector(15  downto 0):= (others=>'0');-- := x"6792"; -- copy from pc calc
+    signal data         : std_ulogic_vector(119 downto 0) := (others=>'0');
     signal udp_checksum_32 : unsigned(31 downto 0) := (others=>'0');
 	COMPONENT calc_ipv4_checksum
 	PORT(
@@ -104,9 +104,9 @@ architecture rtl of udp_core is
 		);
 	END COMPONENT;
 
-    signal l_band_freq  : std_ulogic_vector(15  downto 0) := x"1405";
-    signal x_band_freq  : std_ulogic_vector(15  downto 0) := x"3421";
-    signal pol          : std_ulogic_vector(7  downto 0) := x"00";
+    signal l_band_freq  : std_ulogic_vector(15  downto 0):= (others=>'0');-- := x"1405";
+    signal x_band_freq  : std_ulogic_vector(15  downto 0):= (others=>'0');-- := x"3421";
+    signal pol          : std_ulogic_vector(7  downto 0):= (others=>'0');-- := x"00";
 
     type t_data_array is array (0 to TEST_MODE_TX_PACKET_SIZE -1) of std_ulogic_vector(7 downto 0);
     signal data_array: t_data_array;
