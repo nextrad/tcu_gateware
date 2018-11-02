@@ -32,8 +32,6 @@ entity tcu_fc_reg_top is
         o_TRIGGER       : out std_logic;
         o_STATUS_BUZ    : out std_logic;
         o_STATUS_LED    : out std_logic_vector(3 downto 0);
-		  
-		  o_SEND_PKT		: out std_logic; -- debug udp tx signal
 
         -- LED indicator ports
         o_LED_RHINO     : out   std_logic_vector(7 downto 0);
@@ -120,7 +118,6 @@ architecture structural of tcu_fc_reg_top is
         pol_tx_l_OUT    : OUT   std_logic;
         pol_rx_l_OUT    : OUT   std_logic;
         pri_OUT         : OUT   std_logic;
-		  send_pkt_OUT : out std_logic;
         ACK_O           : OUT   std_logic;
         DAT_O           : OUT   std_logic_vector(15 downto 0);
         GIGE_MDC        : out std_logic;
@@ -186,7 +183,6 @@ begin
         pol_tx_l_OUT    => o_POL_TX_L,
         pol_rx_l_OUT    => o_POL_RX_L,
         pri_OUT         => o_PRI,
-		  send_pkt_OUT => o_SEND_PKT,
         CLK_I           => s_clk_wb,
         RST_I           => s_rst_wb,
         STB_I           => s_slave_sel,
