@@ -42,10 +42,9 @@ port(
         pol_tx_l_OUT            : out std_logic;
         pol_rx_l_OUT            : out std_logic;
         pri_OUT                 : out std_logic;
-		  send_pkt_OUT : out std_logic;
+        send_pkt_OUT            : out std_logic;
+
         -- ethernet ports for frequency setting to REX/Passives
---        GIGE_COL                : in  std_logic;
---        GIGE_CRS                : in  std_logic;
         GIGE_MDC                : out std_logic;
         GIGE_MDIO               : inout std_logic;
         GIGE_TX_CLK             : in  std_logic;
@@ -62,6 +61,10 @@ port(
 end tcu_fc;
 
 architecture behave of tcu_fc is
+
+    type t_tcu_type is (TCU_ACTIVE, TCU_PASSIVE);
+    constant c_TCU_TYPE : t_tcu_type := TCU_PASSIVE; -- change this depending on which TCU you are compiling for
+
     attribute S: string;
     attribute KEEP : string;
     -- tcu fsm signals
@@ -97,8 +100,8 @@ architecture behave of tcu_fc is
     signal pre_pulse_duration       : unsigned(15 downto 0)         := (others => '0');
     signal main_bang_duration       : unsigned(15 downto 0)         := (others => '0');
     signal digitization_duration    : unsigned(31 downto 0)         := (others => '0');
-    signal pol_mode                 : std_logic_vector(2 downto 0)  := (others => '0');
-    signal frequency                : std_logic_vector(15 downto 0) := (others => '0');
+    signal pol_mode                 : std_logic_vector(2 downto 0)  ;--:= (others => '0');
+    signal frequency                : std_logic_vector(15 downto 0) ;--:= (others => '0');
 
     -- other signals
     signal pulse_index              : unsigned(4 downto 0)          := (others => '0');
@@ -128,7 +131,6 @@ architecture behave of tcu_fc is
 
     -- define constants
     constant UDP_TX_DATA_BYTE_LENGTH : integer := 15;        --not SET TO MINIMUM LENGTH
-    constant UDP_RX_DATA_BYTE_LENGTH : integer := 37;
     constant TX_DELAY                : integer := 100;
 
     -- system control
@@ -138,83 +140,72 @@ architecture behave of tcu_fc is
     signal sysclk_locked            : std_logic;
 
     -- MAC signals
+
     signal udp_tx_pkt_data          : std_logic_vector (8 * UDP_TX_DATA_BYTE_LENGTH - 1 downto 0);
     signal udp_tx_pkt_vld           : std_logic;
     signal udp_tx_pkt_sent          : std_logic;
     signal udp_tx_pkt_vld_r         : std_logic;
     signal udp_tx_rdy               : std_logic;
 
-    signal udp_rx_pkt_data          : std_logic_vector(8 * UDP_RX_DATA_BYTE_LENGTH - 1 downto 0);
-    signal udp_rx_pkt_data_r        : std_logic_vector(8 * UDP_RX_DATA_BYTE_LENGTH - 1 downto 0);
-    signal udp_rx_pkt_req           : std_logic;
-    signal udp_rx_rdy               : std_logic;
-    signal udp_rx_rdy_r             : std_logic;
-
-
     signal dst_mac_addr             : std_logic_vector(47 downto 0);
     signal locked                   : std_logic;
     signal mac_init_done            : std_logic;
-    attribute keep of mac_init_done : signal is "true";
-
-    signal GIGE_GTX_CLK_r           : std_logic;
-    signal GIGE_MDC_r               : std_logic;
-
-    signal tx_delay_cnt             : integer := 0;
 
     signal udp_send_packet          : std_logic:='0';
     signal udp_init_packet          : std_logic:='0';
     signal udp_send_packet_r_50     : std_logic:='0';
     signal udp_send_packet_r2_50    : std_logic:='0';
-    attribute keep of udp_send_packet: signal  is "TRUE";
 
     signal udp_send_flag            : std_logic;
     signal udp_receive_packet       : std_logic_vector(1 downto 0) := "00";
     signal udp_packet               : std_logic_vector (8 * UDP_TX_DATA_BYTE_LENGTH - 1 downto 0);
     signal rex_set                  : std_logic;
 
-    signal l_band_freq              : std_logic_vector (15 downto 0) := x"1405";
-    signal x_band_freq              : std_logic_vector (15 downto 0) := x"3421";
-    signal pol                      : std_logic_vector (15 downto 0) := x"0000";
-   signal l_band_freq_r_50         : std_logic_vector (15 downto 0) := x"1405";
-   signal x_band_freq_r_50         : std_logic_vector (15 downto 0) := x"3421";
-   signal pol_r_50                 : std_logic_vector (15 downto 0) := x"0000";
-   signal l_band_freq_r2_50        : std_logic_vector (15 downto 0) := x"1405";
-   signal x_band_freq_r2_50        : std_logic_vector (15 downto 0) := x"3421";
-   signal pol_r2_50                : std_logic_vector (15 downto 0) := x"0000";
+    signal l_band_freq              : std_logic_vector (15 downto 0);-- := x"1405";
+    signal x_band_freq              : std_logic_vector (15 downto 0);-- := x"3421";
+    signal pol                      : std_logic_vector (15 downto 0);-- := x"0000";
+    signal l_band_freq_r_50         : std_logic_vector (15 downto 0);-- := x"1405";
+    signal x_band_freq_r_50         : std_logic_vector (15 downto 0);-- := x"3421";
+    signal pol_r_50                 : std_logic_vector (15 downto 0);-- := x"0000";
+    signal l_band_freq_r2_50        : std_logic_vector (15 downto 0);-- := x"1405";
+    signal x_band_freq_r2_50        : std_logic_vector (15 downto 0);-- := x"3421";
+    signal pol_r2_50                : std_logic_vector (15 downto 0);-- := x"0000";
 
     ---------------------------------------------------------------
     ------------------ UDP Core Declaration Start -----------------
     ---------------------------------------------------------------
     component udp_core is
-    	port(
-    		clock_125_i : in std_ulogic;
+        generic(
+            g_MAC_SRC   : std_ulogic_vector(47 downto 0);
+            g_MAC_DST   : std_ulogic_vector(47 downto 0);
+            g_PRT_SRC   : std_ulogic_vector(15 downto 0);
+            g_PRT_DST   : std_ulogic_vector(15 downto 0);
+            g_IP_SRC    : std_ulogic_vector(31 downto 0);
+            g_IP_DST    : std_ulogic_vector(31 downto 0)
+        );
+        port(
+            clock_125_i    : in    std_ulogic;
 
-            ip_src_i   : in std_ulogic_vector(31  downto 0);
-            ip_dst_i   : in std_ulogic_vector(31  downto 0);
-            mac_src_i  : in std_ulogic_vector(47  downto 0);
-            mac_dst_i  : in std_ulogic_vector(47  downto 0);
-            prt_src_i  : in std_ulogic_vector(15  downto 0);
-            prt_dst_i  : in std_ulogic_vector(15  downto 0);
-            payload_i  : in std_ulogic_vector(119 downto 0);
-            send_pkt_i : in std_ulogic;
+            payload_i      : in    std_ulogic_vector(119 downto 0);
+            send_pkt_i     : in    std_ulogic;
 
-    		phy_reset_o    : out   std_ulogic;
-    		mdc_o          : out   std_ulogic;
-    		mdio_io        : inout std_ulogic;
+            phy_reset_o    : out   std_ulogic;
+            mdc_o          : out   std_ulogic;
+            mdio_io        : inout std_ulogic;
 
-    		mii_tx_clk_i   : in    std_ulogic;
-    		mii_tx_er_o    : out   std_ulogic;
-    		mii_tx_en_o    : out   std_ulogic;
-    		mii_txd_o      : out   std_ulogic_vector(7 downto 0);
-    		mii_rx_clk_i   : in    std_ulogic;
-    		mii_rx_er_i    : in    std_ulogic;
-    		mii_rx_dv_i    : in    std_ulogic;
-    		mii_rxd_i      : in    std_ulogic_vector(7 downto 0);
-    		gmii_gtx_clk_o : out   std_ulogic;
+            mii_tx_clk_i   : in    std_ulogic;
+            mii_tx_er_o    : out   std_ulogic;
+            mii_tx_en_o    : out   std_ulogic;
+            mii_txd_o      : out   std_ulogic_vector(7 downto 0);
+            mii_rx_clk_i   : in    std_ulogic;
+            mii_rx_er_i    : in    std_ulogic;
+            mii_rx_dv_i    : in    std_ulogic;
+            mii_rxd_i      : in    std_ulogic_vector(7 downto 0);
+            gmii_gtx_clk_o : out   std_ulogic;
 
-    		led_o          : out   std_ulogic_vector(3 downto 0);
-    		user_led_o     : out   std_ulogic_vector(1 downto 0)
-    	);
+            led_o          : out   std_ulogic_vector(3 downto 0);
+            user_led_o     : out   std_ulogic_vector(1 downto 0)
+        );
     end component;
     ---------------------------------------------------------------
     ------------------ UDP Core Declaration END -------------------
@@ -225,9 +216,9 @@ begin
     begin
         if rising_edge(clk_IN) then
             -- pulse parameter decoding
-            pre_pulse_duration      <= unsigned(pre_pulse_IN); -- = 30us
+            pre_pulse_duration      <= unsigned(pre_pulse_IN);
             main_bang_duration      <= unsigned(pulse_params_IN(15 downto 0));
-            digitization_duration   <= unsigned(pulse_params_IN(47 downto 32) & pulse_params_IN(31 downto 16));-- =
+            digitization_duration   <= unsigned(pulse_params_IN(47 downto 32) & pulse_params_IN(31 downto 16));
             pol_mode                <= pulse_params_IN(50 downto 48);
             frequency               <= pulse_params_IN(79 downto 64);
 
@@ -269,9 +260,21 @@ begin
 
                     when IDLE =>
                         status_OUT(2 downto 0) <= "000";
+                        -- extracting X and L band frequencies from the pulses register for passive TCUs
+                        -- this is due to the limitation of the passive receivers:
+                        -- they are unable to swap frequencies within same band between pulses,
+                        -- so we set both X and L frequencies at the start of an experiment.
+                        if c_TCU_TYPE = TCU_PASSIVE then
+                            if pulse_index < unsigned(r_num_pulses) -1 then
+                                pulse_index      <= pulse_index + "00001";
+                                state <= IDLE;
+                            end if;
+                        end if;
+
                         if soft_arm = '1' then
                             state <= ARMED;
                             udp_init_packet <= '1';
+                            pulse_index      <= (others => '0');
                         else
                             state <= IDLE;
                         end if;
@@ -365,10 +368,10 @@ begin
             else
                 if start_amp_flag = '1' then
                     amp_on <= '1';
-						  udp_send_packet <= '1';
+                          udp_send_packet <= '1';
                 end if;
                 if amp_on = '1' then
-							udp_send_packet <= '0';
+                            udp_send_packet <= '0';
                     amp_on_counter <= amp_on_counter + x"0001";
                     if amp_on_counter >= (amp_on_duration-1) then -- -3 to compensate for 2 cycle lag
                         amp_on <= '0';
@@ -445,17 +448,33 @@ begin
         end if;
     end process;
 
-    synch_ff1 : process(clk_125MHz_IN)
-    begin
-        if rising_edge(clk_125MHz_IN) then
-            udp_send_packet_r_50 <= udp_send_packet;
---            udp_send_packet_r_50 <= udp_send_packet or udp_init_packet;
---            udp_send_packet_r_50 <= udp_init_packet;
-            l_band_freq_r_50     <= l_band_freq;
-            x_band_freq_r_50     <= x_band_freq;
-            pol_r_50             <= pol;
-        end if;
-    end process;
+
+
+
+    send_packet_active : if c_TCU_TYPE = TCU_ACTIVE generate
+        synch_ff1 : process(clk_125MHz_IN)
+        begin
+            if rising_edge(clk_125MHz_IN) then
+                udp_send_packet_r_50 <= udp_send_packet;
+                l_band_freq_r_50     <= l_band_freq;
+                x_band_freq_r_50     <= x_band_freq;
+                pol_r_50             <= pol;
+            end if;
+        end process;
+    end generate send_packet_active;
+
+
+    send_packet_passive : if c_TCU_TYPE = TCU_PASSIVE generate
+        synch_ff1 : process(clk_125MHz_IN)
+        begin
+            if rising_edge(clk_125MHz_IN) then
+                udp_send_packet_r_50 <= udp_init_packet;
+                l_band_freq_r_50     <= l_band_freq;
+                x_band_freq_r_50     <= x_band_freq;
+                pol_r_50             <= pol;
+            end if;
+        end process;
+    end generate send_packet_passive;
 
     synch_ff2 : process(clk_125MHz_IN)
     begin
@@ -468,7 +487,6 @@ begin
     end process;
 
     udp_tx_pkt_data <= x"0d000000000004000300" & l_band_freq_r2_50 & x_band_freq_r2_50 & pol_r2_50(15 downto 8);
-    -- udp_tx_pkt_data <= x"0d000000000004000300" & l_band_freq & x_band_freq & pol;
 
     freq_set : process(clk_125MHz_IN)
     begin
@@ -493,43 +511,68 @@ begin
     ---------------------------------------------------------------
     ---------------- UDP Core Instantiation START -----------------
     ---------------------------------------------------------------
-    Inst_udp_core: udp_core
-    PORT MAP(
-        clock_125_i => clk_125MHz_IN,
+    UDP_CORE_ACTIVE : if c_TCU_TYPE = TCU_ACTIVE generate
+        Inst_udp_core: udp_core
+        GENERIC MAP(
+            g_MAC_SRC  => x"0e0e0e0e0e0b",  -- 0E:0E:0E:0E:0E:0B
+            g_MAC_DST  => x"0e0e0e0e0e0c",  -- 0E:0E:0E:0E:0E:0C
+            g_PRT_SRC  => x"1f40",          -- 8000
+            g_PRT_DST  => x"1f43",          -- 8003
+            g_IP_SRC   => x"c0a86b1c",      -- 192.168.107.28
+            g_IP_DST   => x"c0a86b1d"       -- 192.168.107.29
+        )
+        PORT MAP(
+            clock_125_i                 => clk_125MHz_IN,
+            payload_i                   => std_ulogic_vector(udp_tx_pkt_data),
+            send_pkt_i                  => std_ulogic(udp_send_packet_r2_50),
+            std_logic(mdc_o)            => GIGE_MDC,
+            mdio_io                     => std_ulogic(GIGE_MDIO),
+            mii_tx_clk_i                => std_ulogic(GIGE_TX_CLK),
+            std_logic(phy_reset_o)      => GIGE_nRESET,
+            mii_rxd_i                   => std_ulogic_vector(GIGE_RXD),
+            mii_rx_clk_i                => std_ulogic(GIGE_RX_CLK),
+            mii_rx_dv_i                 => std_ulogic(GIGE_RX_DV),
+            mii_rx_er_i                 => std_ulogic(GIGE_RX_ER),
+            std_logic_vector(mii_txd_o) => GIGE_TXD,
+            std_logic(gmii_gtx_clk_o)   => GIGE_GTX_CLK,
+            std_logic(mii_tx_en_o)      => GIGE_TX_EN,
+            std_logic(mii_tx_er_o)      => GIGE_TX_ER,
+            led_o                       => open,
+            user_led_o                  => open
 
-        mac_src_i   => x"0e0e0e0e0e0b",
-        prt_src_i   => x"1f40",         -- 8000
-		  -- uncomment for TCU 0
---        ip_src_i    => x"c0a86b1c",     -- 192.168.107.28 TCU 0
---        ip_dst_i    => x"c0a86b1d",     -- 192.168.107.29 REX
---        mac_dst_i   => x"0e0e0e0e0e0c", -- MAC REX
---        prt_dst_i   => x"1f43",         -- 8003 REX
---        -- uncomment for TCU 1&2
-        ip_src_i    => x"c0a83601",     -- 192.168.54.1
-        ip_dst_i    => x"c0a83664",     -- 192.168.54.100
-        mac_dst_i   => x"0014a372173f", -- MAC PASSIVES
-        prt_dst_i   => x"2711",         -- 10001 PASSIVES
+        );
+    end generate UDP_CORE_ACTIVE;
 
-        payload_i   => std_ulogic_vector(udp_tx_pkt_data),
-        send_pkt_i  => std_ulogic(udp_send_packet_r2_50),
-
-        std_logic(mdc_o)            => GIGE_MDC,
-        mdio_io                     => std_ulogic(GIGE_MDIO), -- check this
-        mii_tx_clk_i                => std_ulogic(GIGE_TX_CLK),
-        std_logic(phy_reset_o)      => GIGE_nRESET,
-        mii_rxd_i                   => std_ulogic_vector(GIGE_RXD),
-        mii_rx_clk_i                => std_ulogic(GIGE_RX_CLK),
-        mii_rx_dv_i                 => std_ulogic(GIGE_RX_DV),
-        mii_rx_er_i                 => std_ulogic(GIGE_RX_ER),
-        std_logic_vector(mii_txd_o) => GIGE_TXD,
-        std_logic(gmii_gtx_clk_o)   => GIGE_GTX_CLK,
-        std_logic(mii_tx_en_o)      => GIGE_TX_EN,
-        std_logic(mii_tx_er_o)      => GIGE_TX_ER,
-
-        led_o => open,
-        user_led_o => open
-
-    );
+    UDP_CORE_PASSIVE : if c_TCU_TYPE = TCU_PASSIVE generate
+        Inst_udp_core: udp_core
+        GENERIC MAP(
+            g_MAC_SRC  => x"0e0e0e0e0e0b",  -- 0E:0E:0E:0E:0E:0B
+            g_MAC_DST  => x"0014a372173f",  -- 00:14:A3:72:17:3F
+            g_PRT_SRC  => x"1f40",          -- 8000
+            g_PRT_DST  => x"2711",          -- 10001
+            g_IP_SRC   => x"c0a83601",      -- 192.168.54.1
+            g_IP_DST   => x"c0a83664"       -- 192.168.54.100
+        )
+        PORT MAP(
+            clock_125_i                 => clk_125MHz_IN,
+            payload_i                   => std_ulogic_vector(udp_tx_pkt_data),
+            send_pkt_i                  => std_ulogic(udp_send_packet_r2_50),
+            std_logic(mdc_o)            => GIGE_MDC,
+            mdio_io                     => std_ulogic(GIGE_MDIO),
+            mii_tx_clk_i                => std_ulogic(GIGE_TX_CLK),
+            std_logic(phy_reset_o)      => GIGE_nRESET,
+            mii_rxd_i                   => std_ulogic_vector(GIGE_RXD),
+            mii_rx_clk_i                => std_ulogic(GIGE_RX_CLK),
+            mii_rx_dv_i                 => std_ulogic(GIGE_RX_DV),
+            mii_rx_er_i                 => std_ulogic(GIGE_RX_ER),
+            std_logic_vector(mii_txd_o) => GIGE_TXD,
+            std_logic(gmii_gtx_clk_o)   => GIGE_GTX_CLK,
+            std_logic(mii_tx_en_o)      => GIGE_TX_EN,
+            std_logic(mii_tx_er_o)      => GIGE_TX_ER,
+            led_o                       => open,
+            user_led_o                  => open
+        );
+    end generate UDP_CORE_PASSIVE;
     ---------------------------------------------------------------
     ---------------- UDP Core Instantiation END -------------------
     ---------------------------------------------------------------
