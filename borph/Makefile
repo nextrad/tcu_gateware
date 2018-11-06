@@ -1,6 +1,5 @@
-BOF_FILE=tcu_v2-1-udp.bof
-SYM_FILE=tcu_v2-1_registers.sym
-# BIN_FILE=tcu_top.bin
+BOF_FILE=tcu_v2-1-3.bof
+SYM_FILE=tcu_v2-1-3_registers.sym
 BIN_FILE=tcu_fc_reg_top.bin
 ISE_PROJECT_BIN_FILE=/home/brad/nextrad/tcu_gateware/ise/tcu_v2-1/$(BIN_FILE)
 

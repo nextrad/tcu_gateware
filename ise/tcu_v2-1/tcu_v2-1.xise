@@ -63,9 +63,6 @@
       <association xil_pn:name="PostRouteSimulation" xil_pn:seqID="0"/>
       <association xil_pn:name="PostTranslateSimulation" xil_pn:seqID="135"/>
     </file>
-    <file xil_pn:name="../../contraints/tcu_v2-1.ucf" xil_pn:type="FILE_UCF">
-      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
-    </file>
     <file xil_pn:name="../../hdl/udp_core/ethernet_mac/single_signal_synchronizer.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="127"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="8"/>
@@ -214,6 +211,9 @@
     <file xil_pn:name="../../hdl/udp_core/reset_generator.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="144"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="24"/>
+    </file>
+    <file xil_pn:name="../../contraints/tcu_v2-1-3.ucf" xil_pn:type="FILE_UCF">
+      <association xil_pn:name="Implementation" xil_pn:seqID="217"/>
     </file>
     <file xil_pn:name="../../hdl/cores/clk_wiz_v3_6.xise" xil_pn:type="FILE_COREGENISE">
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
@@ -562,7 +562,7 @@
   </properties>
 
   <bindings>
-    <binding xil_pn:location="/tcu_fc_reg_top" xil_pn:name="../../contraints/tcu_v2-1.ucf"/>
+    <binding xil_pn:location="/tcu_fc_reg_top" xil_pn:name="../../contraints/tcu_v2-1-3.ucf"/>
   </bindings>
 
   <libraries>
