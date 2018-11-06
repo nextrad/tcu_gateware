@@ -142,7 +142,7 @@ architecture structural of tcu_fc_reg_top is
     signal clk_5Hz      : std_logic := '0';
     signal clk_1KHz     : std_logic := '0';
 
-    type buzzer_state_type is (IDLE, START, RUNNING, DONE);
+    type buzzer_state_type is (IDLE, START, RUNNING, DONE, FAULT);
     signal buzzer_state : buzzer_state_type := IDLE;
 
     signal s_beep_flag            : std_logic := '0';
@@ -284,7 +284,9 @@ begin
                 when START =>
                     beep_duration_ms <= 100;
                     beep_period_ms   <= 200;
-                    if state_duration_counter >= 2000 then
+                    if s_status = x"0000" then
+                        buzzer_state <= IDLE;
+                    elsif state_duration_counter >= 2000 then
                         buzzer_state <= RUNNING;
                         state_duration_counter := 0;
                     else
@@ -294,7 +296,9 @@ begin
                 when RUNNING =>
                     beep_duration_ms <= 100;
                     beep_period_ms   <= 5000;
-                    if s_status =  x"0005" then
+                    if s_status = x"0000" then
+                        buzzer_state <= IDLE;
+                    elsif s_status =  x"0005" then
                         buzzer_state <= DONE;
                     else
                         buzzer_state <= RUNNING;
@@ -302,15 +306,25 @@ begin
                 when DONE =>
                     beep_duration_ms <= 500;
                     beep_period_ms   <= 1000;
-                    if state_duration_counter >= 2000 then
+                    if s_status = x"0000" then
+                        buzzer_state <= IDLE;
+                    elsif state_duration_counter >= 2000 then
                         buzzer_state <= IDLE;
                         state_duration_counter := 0;
                     else
                         buzzer_state <= DONE;
                         state_duration_counter := state_duration_counter + 1;
                     end if;
+                when FAULT =>
+                    beep_duration_ms <= 2000;
+                    beep_period_ms   <= 3000;
+                    if s_status = x"0000" then
+                        buzzer_state <= IDLE;
+                    else
+                        buzzer_state <= FAULT;
+                    end if;
                 when others =>
-                    buzzer_state <= IDLE;
+                    buzzer_state <= FAULT;
             end case;
         end if;
     end process status_buzzer;
