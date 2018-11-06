@@ -142,6 +142,15 @@ architecture structural of tcu_fc_reg_top is
     signal clk_5Hz      : std_logic := '0';
     signal clk_1KHz     : std_logic := '0';
 
+    type buzzer_state_type is (IDLE, START, RUNNING, DONE);
+    signal buzzer_state : buzzer_state_type := IDLE;
+
+    signal s_beep_flag            : std_logic := '0';
+    signal beep_duration_ms     : integer;
+    signal beep_duration_counter: integer := 0;
+    signal beep_period_ms       : integer;
+    signal beep_period_counter  : integer := 0;
+
 begin
 
     o_LOGIC_HIGH <= '1';
@@ -184,7 +193,8 @@ begin
         pol_rx_l_OUT    => o_POL_RX_L,
         pri_OUT         => o_PRI,
         CLK_I           => s_clk_wb,
-        RST_I           => s_rst_wb,
+        -- RST_I           => s_rst_wb,
+        RST_I           => s_rst_sys,
         STB_I           => s_slave_sel,
         WE_I            => s_we,
         DAT_I           => s_dat_m2s,
@@ -207,13 +217,18 @@ begin
 
     s_rst_sys  <= not i_RESET;
     --s_rst_sys  <= '0';
-    o_LED_RHINO <= s_clk_locked & s_rst_wb & s_status(5 downto 0);
+    o_LED_RHINO(4 downto 0) <= s_status(4 downto 0);
+    with buzzer_state select o_LED_RHINO(7 downto 5) <=
+        "001" when START,
+        "010" when RUNNING,
+        "100" when DONE,
+        "111" when OTHERS;
 
     with s_status select o_TRIGGER <=
-      '1' when x"0002",
-      '1' when x"0003",
-      '1' when x"0004",
-      '0' when OTHERS;
+        '1' when x"0002",
+        '1' when x"0003",
+        '1' when x"0004",
+        '0' when OTHERS;
 
     with s_status select o_LED_FMC <=
         clk_0_5Hz&"000"                 when x"0000",
@@ -224,41 +239,101 @@ begin
         "1111"                          when x"0005",
         clk_2Hz &"00"&(not clk_2Hz)     when OTHERS;
 
-    -- with s_status select o_STATUS_BUZ <=
-    --     clk_1Hz   when x"0000",
-    --     clk_2Hz   when x"0001",
-    --     clk_5Hz   when x"0002",
-    --     clk_5Hz   when x"0003",
-    --     clk_5Hz   when x"0004",
-    --     '1'       when x"0005",
-    --     clk_0_5Hz when OTHERS;
+    beep_interval : process(clk_1KHz)
+    begin
+        if rising_edge(clk_1KHz) then
+            if beep_period_counter > (beep_period_ms - 1) then
+                s_beep_flag <= '1';
+                beep_period_counter <= 0;
+            else
+                s_beep_flag <= '0';
+                beep_period_counter <= beep_period_counter + 1;
+            end if;
+        end if;
+    end process beep_interval;
 
-    status : process(s_status)
+    beep_duration : process(clk_1KHz, s_beep_flag)
+    begin
+        if rising_edge(clk_1KHz) then
+            if s_beep_flag = '1' then
+                beep_duration_counter <= 0;
+            end if;
+            if beep_duration_counter < (beep_duration_ms - 1) then
+                o_STATUS_BUZ <= '1';
+                beep_duration_counter <= beep_duration_counter + 1;
+            else
+                o_STATUS_BUZ <= '0';
+            end if;
+        end if;
+    end process beep_duration;
+
+
+    status_buzzer : process(clk_1KHz)
+        variable state_duration_counter : integer := 0;
+    begin
+        if rising_edge(clk_1KHz) then
+            case(buzzer_state) is
+                when IDLE =>
+                    beep_duration_ms <= 0;
+                    beep_period_ms   <= 0;
+                    if (s_status =  x"0002") or (s_status =  x"0003") or (s_status =  x"0004") then
+                        buzzer_state <= START;
+                    else
+                        buzzer_state <= IDLE;
+                    end if;
+                when START =>
+                    beep_duration_ms <= 100;
+                    beep_period_ms   <= 200;
+                    if state_duration_counter >= 2000 then
+                        buzzer_state <= RUNNING;
+                        state_duration_counter := 0;
+                    else
+                        buzzer_state <= START;
+                        state_duration_counter := state_duration_counter + 1;
+                    end if;
+                when RUNNING =>
+                    beep_duration_ms <= 100;
+                    beep_period_ms   <= 5000;
+                    if s_status =  x"0005" then
+                        buzzer_state <= DONE;
+                    else
+                        buzzer_state <= RUNNING;
+                    end if;
+                when DONE =>
+                    beep_duration_ms <= 500;
+                    beep_period_ms   <= 1000;
+                    if state_duration_counter >= 2000 then
+                        buzzer_state <= IDLE;
+                        state_duration_counter := 0;
+                    else
+                        buzzer_state <= DONE;
+                        state_duration_counter := state_duration_counter + 1;
+                    end if;
+                when others =>
+                    buzzer_state <= IDLE;
+            end case;
+        end if;
+    end process status_buzzer;
+
+    status_leds : process(s_status)
     begin
         case(s_status) is
             when x"0000" =>     -- IDLE
-                o_STATUS_BUZ <= '0';
                 o_STATUS_LED <= "0001";
             when x"0001" =>     -- ARMED
-                o_STATUS_BUZ <= '0';
                 o_STATUS_LED <= "0010";
             when x"0002" =>     -- RUNNING
-                o_STATUS_BUZ <= clk_2Hz;
                 o_STATUS_LED <= "0100";
             when x"0003" =>     -- RUNNING
-                o_STATUS_BUZ <= clk_2Hz;
                 o_STATUS_LED <= "0100";
             when x"0004" =>     -- RUNNING
-                o_STATUS_BUZ <= clk_2Hz;
                 o_STATUS_LED <= "0100";
             when x"0005" =>     -- DONE
-                o_STATUS_BUZ <= '0';
                 o_STATUS_LED <= "0111";
             when others =>      -- FAULT
-                o_STATUS_BUZ <= '0';
                 o_STATUS_LED <= "1000";
         end case;
-    end process;
+    end process status_leds;
 
         -- slow clock to drive LEDs
         process (s_clk_100)
