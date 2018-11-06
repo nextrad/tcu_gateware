@@ -104,14 +104,14 @@ BEGIN
         address_int := TO_INTEGER(UNSIGNED(ADR_I));
         IF RISING_EDGE(CLK_I) THEN
             if RST_I = '1' THEN
-                num_pulses_reg <= (OTHERS =>'0');
-                num_repeats_reg <= (OTHERS =>'0');
-                x_amp_delay_reg <= (OTHERS =>'0');
-                l_amp_delay_reg <= (OTHERS =>'0');
-                pri_pulse_width_reg <= (OTHERS =>'0');
-                -- pulse_params_reg <= (OTHERS => (OTHERS => '1'));
+                -- num_pulses_reg <= (OTHERS =>'0');
+                -- num_repeats_reg <= (OTHERS =>'0');
+                -- x_amp_delay_reg <= (OTHERS =>'0');
+                -- l_amp_delay_reg <= (OTHERS =>'0');
+                -- pri_pulse_width_reg <= (OTHERS =>'0');
+                -- rex_delay_reg <= (OTHERS =>'0');
                 instruction_reg <= (OTHERS =>'0');
-                rex_delay_reg <= (OTHERS =>'0');
+                -- pulse_params_reg <= (OTHERS => (OTHERS => '1'));
             elsif STB_I = '1' then
             -- if STB_I = '1' then
                 case TO_INTEGER(UNSIGNED(ADR_I)) is
