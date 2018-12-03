@@ -79,6 +79,8 @@ ARCHITECTURE behavioral OF tcu_registers IS
         -- <p. width>, <pri_lower>, <pri_upper>, <mode>, <freq>
         -- pulse 0
         x"03e8", x"7700", x"0001", x"0000", x"1405",
+        -- pulse 1
+        x"03e8", x"7700", x"0001", x"0000", x"3421",
         others => x"ffff"
     );
     SIGNAL status_reg           : STD_LOGIC_VECTOR(15 DOWNTO 0) := (OTHERS => '0');
