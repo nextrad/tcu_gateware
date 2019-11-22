@@ -16,7 +16,7 @@ entity tcu_fc_reg is
       -- USER-DEFINED PORTS
       -- ------------------------------------------------------------------------------------------------
       clk_IN          : in    STD_LOGIC;
-      clk_125MHz_IN           : in  std_logic;
+      clk_125MHz_IN   : in  std_logic;
       rst_IN          : in    STD_LOGIC;
       trigger_IN      : in  std_logic;
       status_OUT      : out std_logic_vector(15 downto 0);
@@ -26,7 +26,7 @@ entity tcu_fc_reg is
       pol_tx_l_OUT    : out std_logic;
       pol_rx_l_OUT    : out std_logic;
       pri_OUT         : out std_logic;
-send_pkt_OUT : out std_logic;
+      send_pkt_OUT    : out std_logic;
       -- ------------------------------------------------------------------------------------------------
       -- WISHBONE PORTS - DO NOT MODIFY
       -- ------------------------------------------------------------------------------------------------
@@ -65,6 +65,7 @@ architecture structural of tcu_fc_reg is
     signal x_amp_delay      : std_logic_vector (15 downto 0);
     signal l_amp_delay      : std_logic_vector (15 downto 0);
     signal rex_delay        : std_logic_vector (15 downto 0);
+    signal trig_delay       : std_logic_vector (15 downto 0);
     signal pri_pulse_width  : std_logic_vector (31 downto 0);
     signal pulse_params     : std_logic_vector (79 downto 0);
 
@@ -90,6 +91,7 @@ architecture structural of tcu_fc_reg is
         x_amp_delay_OUT : OUT std_logic_vector(15 downto 0);
         l_amp_delay_OUT : OUT std_logic_vector(15 downto 0);
         rex_delay_OUT : OUT std_logic_vector(15 downto 0);
+        trig_delay_OUT      : out   STD_LOGIC_VECTOR(15 DOWNTO 0);
         pri_pulse_width_OUT : OUT std_logic_vector(31 downto 0);
         pulse_params_OUT : OUT std_logic_vector(79 downto 0);
         pre_pulse_OUT         : out   STD_LOGIC_VECTOR(15 DOWNTO 0);
@@ -110,6 +112,7 @@ architecture structural of tcu_fc_reg is
         x_amp_delay_IN : IN std_logic_vector(15 downto 0);
         l_amp_delay_IN : IN std_logic_vector(15 downto 0);
         rex_delay_IN : IN std_logic_vector(15 downto 0);
+        trig_delay_IN           : in  std_logic_vector(15 downto 0);
         pri_pulse_width_IN : IN std_logic_vector(31 downto 0);
         pulse_params_IN : IN std_logic_vector(79 downto 0);
         pulse_index_OUT : OUT std_logic_vector(4 downto 0);
@@ -150,6 +153,7 @@ begin
         x_amp_delay_OUT => x_amp_delay,
         l_amp_delay_OUT => l_amp_delay,
         rex_delay_OUT => rex_delay,
+        trig_delay_OUT => trig_delay,
         pri_pulse_width_OUT => pri_pulse_width,
         pulse_params_OUT => pulse_params,
         pre_pulse_OUT => pre_pulse,
@@ -174,6 +178,7 @@ begin
         x_amp_delay_IN => x_amp_delay,
         l_amp_delay_IN => l_amp_delay,
         rex_delay_In => rex_delay,
+        trig_delay_In => trig_delay,
         pri_pulse_width_IN => pri_pulse_width,
         pulse_params_IN => pulse_params,
         pulse_index_OUT => pulse_index,

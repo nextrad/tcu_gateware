@@ -29,6 +29,7 @@ port(
         x_amp_delay_IN          : in  std_logic_vector(15 downto 0);
         l_amp_delay_IN          : in  std_logic_vector(15 downto 0);
         rex_delay_IN            : in  std_logic_vector(15 downto 0);
+        trig_delay_IN           : in  std_logic_vector(15 downto 0);
         pre_pulse_IN            : in  std_logic_vector(15 downto 0);
         pri_pulse_width_IN      : in  std_logic_vector(31 downto 0);
         pulse_params_IN         : in  std_logic_vector(PULSE_PARAMS_WIDTH - 1 downto 0);
@@ -110,6 +111,7 @@ architecture behave of tcu_fc is
     signal main_bang_counter        : unsigned(15 downto 0)         := (others => '0');
     signal digitize_counter         : unsigned(31 downto 0)         := (others => '0');
     signal block_counter            : unsigned(31 downto 0)         := (others => '0');
+    signal trig_delay_counter       : unsigned(15 downto 0)         := (others => '0');
 
     constant UDP_DELAY              : natural                       := 10; -- seems to output ~2 udp packets per pulse
     signal udp_counter              : integer range 0 to UDP_DELAY  := 0;
@@ -123,6 +125,7 @@ architecture behave of tcu_fc is
     signal r_pre_pulse              : std_logic_vector(15 downto 0) := (others => '0');
     signal r_pri_pulse_width        : std_logic_vector(31 downto 0) := (others => '0');
     signal r_rex_delay              : std_logic_vector(15 downto 0) := (others => '0');
+    signal r_trig_delay             : std_logic_vector(15 downto 0) := (others => '0');
 
     --    Ethernet Signal declaration section
     attribute S of GIGE_RXD   : signal is "TRUE";
@@ -238,6 +241,7 @@ begin
             r_pre_pulse       <= pre_pulse_IN;
             r_pri_pulse_width <= pri_pulse_width_IN;
             r_rex_delay       <= rex_delay_IN;
+            r_trig_delay      <= trig_delay_IN;
         end if;
     end process;
 
@@ -280,12 +284,18 @@ begin
                         end if;
 
                     when ARMED =>
-                    udp_init_packet <= '0';
+                        udp_init_packet <= '0';
                         status_OUT(2 downto 0) <= "001";
                         if soft_arm = '0' then
                             state <= IDLE;
                         elsif trigger_IN = '1' then
-                            state <= PRE_PULSE;
+                            trig_delay_counter <= trig_delay_counter + x"0001";
+                            if trig_delay_counter >= unsigned(r_trig_delay) then
+                                state <= PRE_PULSE;
+                                trig_delay_counter <= (others => '0');
+                            else
+                                state <= ARMED;
+                            end if;
                         else
                             state <= ARMED;
                         end if;
@@ -482,7 +492,7 @@ begin
             udp_send_packet_r2_50 <= udp_send_packet_r_50;
             l_band_freq_r2_50     <= l_band_freq_r_50;
             x_band_freq_r2_50     <= x_band_freq_r_50;
-            pol_r2_50             <=pol_r_50;
+            pol_r2_50             <= pol_r_50;
         end if;
     end process;
 

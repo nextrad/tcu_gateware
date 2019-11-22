@@ -1,5 +1,5 @@
-BOF_FILE=tcu_v2-1-3.bof
-SYM_FILE=tcu_v2-1-3_registers.sym
+BOF_FILE=tcu_v2-1-4_passive_int_clk.bof
+SYM_FILE=tcu_v2-1-4_registers.sym
 BIN_FILE=tcu_fc_reg_top.bin
 ISE_PROJECT_BIN_FILE=/home/brad/nextrad/tcu_gateware/ise/tcu_v2-1/$(BIN_FILE)
 

@@ -34,6 +34,7 @@ PORT (
     x_amp_delay_OUT     : out   STD_LOGIC_VECTOR(15 DOWNTO 0);
     l_amp_delay_OUT     : out   STD_LOGIC_VECTOR(15 DOWNTO 0);
     rex_delay_OUT       : out   STD_LOGIC_VECTOR(15 DOWNTO 0);
+    trig_delay_OUT      : out   STD_LOGIC_VECTOR(15 DOWNTO 0);
     pre_pulse_OUT       : out   STD_LOGIC_VECTOR(15 DOWNTO 0);
     pri_pulse_width_OUT : out   STD_LOGIC_VECTOR(31 DOWNTO 0);
     pulse_params_OUT    : out   STD_LOGIC_VECTOR(79 DOWNTO 0);
@@ -73,6 +74,7 @@ ARCHITECTURE behavioral OF tcu_registers IS
     SIGNAL x_amp_delay_reg      : STD_LOGIC_VECTOR(15 DOWNTO 0) := x"015e";        -- 3.5us
     SIGNAL l_amp_delay_reg      : STD_LOGIC_VECTOR(15 DOWNTO 0) := x"0064";        -- 1.0us
     SIGNAL rex_delay_reg        : STD_LOGIC_VECTOR(15 DOWNTO 0) := x"0096";        -- 1.5us
+    SIGNAL trig_delay_reg       : STD_LOGIC_VECTOR(15 DOWNTO 0) := x"0000";        -- 0.0us
 
     SIGNAL pulse_params_reg     : array_type(0 to (REGISTER_PULSE_PARAMS_END - REGISTER_PULSE_PARAMS_BASE)) :=
     (
@@ -212,13 +214,22 @@ BEGIN
                             dat_o_sig <= pre_pulse_reg(15 downto 0);
                         end if;
                     -- ------------------------------------------------------------------------------------------------
-                    -- REGISTER: pre_pulse    SIZE: 2 bytes    PERMISSIONS: read and write
+                    -- REGISTER: rex_delay    SIZE: 2 bytes    PERMISSIONS: read and write
                     -- ------------------------------------------------------------------------------------------------
                     when 170 =>
                         if WE_I = '1' THEN
                             rex_delay_reg(15 downto 0) <= DAT_I;
                         else
                             dat_o_sig <= rex_delay_reg(15 downto 0);
+                        end if;
+                    -- ------------------------------------------------------------------------------------------------
+                    -- REGISTER: trig_delay  SIZE: 2 bytes    PERMISSIONS: read and write
+                    -- ------------------------------------------------------------------------------------------------
+                    when 171 =>
+                        if WE_I = '1' THEN
+                            trig_delay_reg(15 downto 0) <= DAT_I;
+                        else
+                            dat_o_sig <= trig_delay_reg(15 downto 0);
                         end if;
                     when others =>
                         null;
@@ -230,7 +241,8 @@ BEGIN
                 l_amp_delay_reg     <= l_amp_delay_reg;
                 pri_pulse_width_reg <= pri_pulse_width_reg;
                 pre_pulse_reg       <= pre_pulse_reg;
-					 rex_delay_reg			<= rex_delay_reg;
+                rex_delay_reg       <= rex_delay_reg;
+                trig_delay_reg      <= trig_delay_reg;
                 -- pulse_params_reg <= pulse_params_reg;
             end if;
         END IF;
@@ -254,16 +266,17 @@ BEGIN
                                    pulse_params_reg((5 * pulse_index) + 0) ; -- rf_pulse_width [15 - 0]
         end if;
     end process;
-
-        pulse_index         <= to_integer(unsigned(pulse_index_IN)); -- input port
-        status_OUT          <=  status_reg; -- output port
-        instruction_OUT     <= instruction_reg; -- output port
-        num_pulses_OUT      <= num_pulses_reg; -- output port
-        num_repeats_OUT     <= num_repeats_reg(31 downto 16) & num_repeats_reg(15 downto 0); -- output port
-        x_amp_delay_OUT     <= x_amp_delay_reg; -- output port
-        l_amp_delay_OUT     <= l_amp_delay_reg; -- output port
-        rex_delay_OUT     	 <= rex_delay_reg; -- output port
-        pre_pulse_OUT       <= pre_pulse_reg; -- output port
-        pri_pulse_width_OUT <= pri_pulse_width_reg(31 downto 16) & pri_pulse_width_reg(15 downto 0); -- output port
+        -- connecting each register to it's associated port to interface the tcu_fc (FSM + i/o Controller)
+        pulse_index         <= to_integer(unsigned(pulse_index_IN));
+        status_OUT          <= status_reg;
+        instruction_OUT     <= instruction_reg;
+        num_pulses_OUT      <= num_pulses_reg;
+        num_repeats_OUT     <= num_repeats_reg(31 downto 16) & num_repeats_reg(15 downto 0);
+        x_amp_delay_OUT     <= x_amp_delay_reg;
+        l_amp_delay_OUT     <= l_amp_delay_reg;
+        rex_delay_OUT       <= rex_delay_reg;
+        trig_delay_OUT      <= trig_delay_reg;
+        pre_pulse_OUT       <= pre_pulse_reg;
+        pri_pulse_width_OUT <= pri_pulse_width_reg(31 downto 16) & pri_pulse_width_reg(15 downto 0);
 
 END behavioral;
