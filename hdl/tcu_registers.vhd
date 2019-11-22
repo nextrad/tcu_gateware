@@ -67,7 +67,7 @@ ARCHITECTURE behavioral OF tcu_registers IS
 
     TYPE array_type IS ARRAY (INTEGER RANGE <>) OF STD_LOGIC_VECTOR(15 DOWNTO 0);
 
-    SIGNAL num_pulses_reg       : STD_LOGIC_VECTOR(15 DOWNTO 0) := x"0001";        -- 1 pulses
+    SIGNAL num_pulses_reg       : STD_LOGIC_VECTOR(15 DOWNTO 0) := x"0002";        -- 2 pulses
     SIGNAL num_repeats_reg      : STD_LOGIC_VECTOR(31 DOWNTO 0) := x"ffffffff";    --  repeats
     SIGNAL pre_pulse_reg        : STD_LOGIC_VECTOR(15 DOWNTO 0) := x"0bb8";        -- 30.0us
     SIGNAL pri_pulse_width_reg  : STD_LOGIC_VECTOR(31 DOWNTO 0) := x"0000c350";    -- 500.0us
@@ -82,7 +82,7 @@ ARCHITECTURE behavioral OF tcu_registers IS
         -- pulse 0
         x"03e8", x"7700", x"0001", x"0000", x"1405",
         -- pulse 1
-        x"03e8", x"7700", x"0001", x"0000", x"3421",
+        x"03e8", x"7700", x"0001", x"0004", x"3421",
         others => x"ffff"
     );
     SIGNAL status_reg           : STD_LOGIC_VECTOR(15 DOWNTO 0) := (OTHERS => '0');
