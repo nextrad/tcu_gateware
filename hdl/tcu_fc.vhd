@@ -154,6 +154,11 @@ architecture behave of tcu_fc is
     signal locked                   : std_logic;
     signal mac_init_done            : std_logic;
 
+    signal i_passive_pkt_counter    : integer range 0 to 20000 := 0;
+    signal passive_pkt_flag         : std_logic:='0';
+    signal send_passive_pkt         : std_logic:='0';
+    signal pol_passive              : std_logic_vector (15 downto 0);
+
     signal udp_send_packet          : std_logic:='0';
     signal udp_init_packet          : std_logic:='0';
     signal udp_send_packet_r_50     : std_logic:='0';
@@ -475,13 +480,44 @@ begin
 
 
     send_packet_passive : if c_TCU_TYPE = TCU_PASSIVE generate
+        send_two_pkts : process(clk_IN, rst_IN, udp_init_packet)
+        begin
+        if rst_IN = '1' then
+            i_passive_pkt_counter <= 0;
+            passive_pkt_flag <= '0';
+        elsif rising_edge(clk_IN) then
+            if udp_init_packet = '1' then
+                passive_pkt_flag <= '1';
+            end if;
+            if passive_pkt_flag = '1' then
+                i_passive_pkt_counter <= i_passive_pkt_counter + 1;
+                case(i_passive_pkt_counter) is
+                    when 0 to 9 =>
+                        send_passive_pkt <= '1';
+                        pol_passive             <=  x"0000";
+                    when 10 to 9999 =>
+                        send_passive_pkt <= '0';
+                    when 10000 to 10009 =>
+                        send_passive_pkt <= '1';
+                        pol_passive             <=  x"0100";
+                    when 10010 to 19999 =>
+                        send_passive_pkt <= '0';
+                    when others =>
+                        send_passive_pkt <= '0';
+                        i_passive_pkt_counter <= 0;
+                        passive_pkt_flag <= '0';
+                end case;
+            end if;
+        end if;
+        end process;
+
         synch_ff1 : process(clk_125MHz_IN)
         begin
             if rising_edge(clk_125MHz_IN) then
-                udp_send_packet_r_50 <= udp_init_packet;
+                udp_send_packet_r_50 <= send_passive_pkt;
                 l_band_freq_r_50     <= l_band_freq;
                 x_band_freq_r_50     <= x_band_freq;
-                pol_r_50             <= pol;
+                pol_r_50             <= pol_passive;
             end if;
         end process;
     end generate send_packet_passive;
