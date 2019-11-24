@@ -29,7 +29,8 @@ entity tcu_fc_reg_top is
         o_POL_TX_L      : out std_logic;
         o_POL_RX_L      : out std_logic;
         o_PRI           : out std_logic;
-        o_TRIGGER       : out std_logic;
+        o_TRIGGERED     : out std_logic;
+        o_START         : out std_logic;
         o_STATUS_BUZ    : out std_logic;
         o_STATUS_LED    : out std_logic_vector(3 downto 0);
 
@@ -151,6 +152,8 @@ architecture structural of tcu_fc_reg_top is
     signal beep_period_ms       : integer;
     signal beep_period_counter  : integer := 0;
 
+    signal r_triggered     : std_logic := '0';
+
 begin
 
     o_LOGIC_HIGH <= '1';
@@ -224,11 +227,19 @@ begin
         "100" when DONE,
         "111" when OTHERS;
 
-    with s_status select o_TRIGGER <=
+    with s_status select o_START <=
         '1' when x"0002",
         '1' when x"0003",
         '1' when x"0004",
         '0' when OTHERS;
+
+    triggered : process(s_clk_100)
+    begin
+        if rising_edge(s_clk_100) then
+            r_triggered <= i_TRIGGER;
+        end if;
+    end process;
+    o_TRIGGERED <= r_triggered;
 
     with s_status select o_LED_FMC <=
         clk_0_5Hz&"000"                 when x"0000",
