@@ -64,7 +64,7 @@ end tcu_fc;
 architecture behave of tcu_fc is
 
     type t_tcu_type is (TCU_ACTIVE, TCU_PASSIVE);
-    constant c_TCU_TYPE : t_tcu_type := TCU_PASSIVE; -- change this depending on which TCU you are compiling for
+    constant c_TCU_TYPE : t_tcu_type := TCU_ACTIVE; -- change this depending on which TCU you are compiling for
 
     attribute S: string;
     attribute KEEP : string;
